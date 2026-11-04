@@ -62,9 +62,9 @@ def seed(api):
     api.ensure("Quality Inspection Template", "Demo lotion release", quality_inspection_template_name="Demo lotion release",
                item_quality_inspection_parameter=[
                    {"specification": "pH", "numeric": 1, "min_value": 5, "max_value": 6},
-                   {"specification": "Appearance", "value": "Uniform"}])
+                   {"specification": "Appearance", "numeric": 0, "value": "Uniform"}])
     api.ensure("Quality Inspection Template", "Demo balm release", quality_inspection_template_name="Demo balm release",
-               item_quality_inspection_parameter=[{"specification": "Appearance", "value": "Uniform"}])
+               item_quality_inspection_parameter=[{"specification": "Appearance", "numeric": 0, "value": "Uniform"}])
     for code, (name, rate) in RAW_ITEMS.items():
         api.ensure("Item", code, item_code=code, item_name=name, item_group="Raw Material",
                    stock_uom="Kg", is_stock_item=1, has_batch_no=1, create_new_batch=0,

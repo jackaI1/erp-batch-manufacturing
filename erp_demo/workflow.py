@@ -106,7 +106,14 @@ def seed(api):
         if bom["docstatus"] == 0:
             bom = api.submit(bom)
         boms[key] = bom["name"]
-    api.update("System Settings", "System Settings", setup_complete=1)
+    # This script supplies the demo's setup instead of the interactive wizard.
+    apps = api.get("Installed Applications", "Installed Applications")["installed_applications"]
+    for app in apps:
+        if app["app_name"] in ("frappe", "erpnext"):
+            app["is_setup_complete"] = 1
+    api.update("Installed Applications", "Installed Applications", installed_applications=apps)
+    api.update("System Settings", "System Settings", setup_complete=1,
+               language="en", time_zone="America/Toronto", country="Canada")
     return {"boms": boms, "batches": batches, "opening_receipt": receipt["name"]}
 
 

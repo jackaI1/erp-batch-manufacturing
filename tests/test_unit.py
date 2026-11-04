@@ -138,5 +138,6 @@ class ClientHTTPTests(unittest.TestCase):
         self.assertEqual(context.exception.status, 403)
 
     def test_missing_master_can_be_created(self):
-        result = self.api.ensure("Item", "missing", item_code="new")
+        result = self.api.ensure("Item", "missing", name="new", item_code="new")
         self.assertEqual(result["item_code"], "new")
+        self.assertEqual(result["name"], "new")

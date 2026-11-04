@@ -18,7 +18,8 @@ class ManufacturingIntegration(unittest.TestCase):
                 return request(method, path, *args, **kwargs)
             except ERPError as error:
                 # This opt-in test uses only synthetic demo records. Normal CLI errors stay private.
-                print(f"Synthetic-site diagnostic: {method} {path}: {error.server_messages}", flush=True)
+                if error.status != 404:
+                    print(f"Synthetic-site diagnostic: {method} {path}: {error.server_messages}", flush=True)
                 raise
         api.request = diagnostic_request
         first = seed(api)
@@ -34,7 +35,12 @@ class ManufacturingIntegration(unittest.TestCase):
         self.assertAlmostEqual(batch_balance(api, "RM-OIL-A"), 100)
         rejected = api.list("Quality Inspection", {"batch_no": f"FG-LOTION-{run}-rejected"}, ["status", "reference_name"])
         self.assertEqual(rejected[0]["status"], "Rejected")
-        self.assertEqual(api.get("Stock Entry", rejected[0]["reference_name"])["docstatus"], 0)
+        rejected_entry = api.get("Stock Entry", rejected[0]["reference_name"])
+        self.assertEqual(rejected_entry["docstatus"], 0)
+        # The ERP must enforce the same release rule even when bypassing our CLI.
+        with self.assertRaises(ERPError):
+            api.submit(rejected_entry)
+        self.assertAlmostEqual(batch_balance(api, "RM-OIL-A"), 100)
         lotion = manufacture(api, "lotion", 10, "A", f"{run}-lotion")
         balm = manufacture(api, "balm", 5, "A", f"{run}-balm-a")
         other = manufacture(api, "balm", 5, "B", f"{run}-balm-b")

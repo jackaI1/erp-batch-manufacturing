@@ -90,9 +90,9 @@ class Client:
     def submit(self, doc):
         return self.call("frappe.client.submit", {"doc": doc})
 
-    def ensure(self, doctype, name, **fields):
+    def ensure(self, doctype, desired_name, **fields):
         try:
-            return self.get(doctype, name)
+            return self.get(doctype, desired_name)
         except ERPError as exc:
             if exc.status != 404:
                 raise

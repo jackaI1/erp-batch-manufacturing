@@ -1,7 +1,7 @@
 name: Tests
 on:
   push:
-    branches: [main, 'skills/**']
+    branches: [main]
   pull_request:
     branches: [main]
 permissions:

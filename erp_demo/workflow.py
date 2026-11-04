@@ -41,12 +41,18 @@ def seed(api):
     api.ensure("Item Group", "All Item Groups", item_group_name="All Item Groups", is_group=1)
     for group in ("Raw Material", "Products"):
         api.ensure("Item Group", group, item_group_name=group, parent_item_group="All Item Groups")
+    # Company creation links its default transit warehouse to this wizard fixture.
+    api.ensure("Warehouse Type", "Transit", name="Transit")
+    for purpose in ("Material Receipt", "Manufacture"):
+        api.ensure("Stock Entry Type", purpose, name=purpose, purpose=purpose, is_standard=1)
     api.ensure("Company", COMPANY, company_name=COMPANY, abbr=ABBR,
                          default_currency="CAD", country="Canada",
                          chart_of_accounts="Standard", create_chart_of_accounts_based_on="Standard Template")
     api.update("Global Defaults", "Global Defaults", default_company=COMPANY, default_currency="CAD",
                country="Canada", current_fiscal_year=str(year))
-    api.update("Stock Settings", "Stock Settings", use_serial_batch_fields=1)
+    api.update("Stock Settings", "Stock Settings", use_serial_batch_fields=1,
+               action_if_quality_inspection_is_not_submitted="Stop",
+               action_if_quality_inspection_is_rejected="Stop")
     api.update("Manufacturing Settings", "Manufacturing Settings", make_serial_no_batch_from_work_order=0)
     for name in ("Raw Materials", "Work In Progress", "Finished Goods"):
         api.ensure("Warehouse", f"{name} - {ABBR}", warehouse_name=name, company=COMPANY,
@@ -93,6 +99,7 @@ def seed(api):
         found = api.list("BOM", {"item": formula["item"], "docstatus": ["!=", 2]})
         bom = api.get("BOM", found[0]["name"]) if found else api.create(
             "BOM", item=formula["item"], company=COMPANY, quantity=10, is_active=1, is_default=1,
+            inspection_required=1, quality_inspection_template=f"Demo {key} release",
             currency="CAD", rm_cost_as_per="Valuation Rate", items=[
                 {"item_code": code, "qty": qty, "uom": "Kg", "rate": RAW_ITEMS[code][1]}
                 for code, qty in formula["ingredients"].items()])

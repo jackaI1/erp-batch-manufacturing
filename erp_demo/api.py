@@ -16,7 +16,8 @@ class NoRedirect(HTTPRedirectHandler):
 class ERPError(RuntimeError):
     """ERPNext rejected a request. Response bodies may contain private data."""
 
-    def __init__(self, status, kind):
+    def __init__(self, status, kind, server_messages=""):
+        self.server_messages = server_messages
         self.status = status
         super().__init__(f"ERPNext HTTP {status}: {kind}")
 
@@ -56,10 +57,12 @@ class Client:
                 return json.load(response)
         except HTTPError as exc:
             try:
-                kind = json.loads(exc.read()).get("exc_type", "Request rejected")
+                error = json.loads(exc.read())
+                kind = error.get("exc_type", "Request rejected")
+                messages = str(error.get("_server_messages", ""))[:1000]
             except (ValueError, AttributeError):
-                kind = "Request rejected"
-            raise ERPError(exc.code, kind) from None
+                kind, messages = "Request rejected", ""
+            raise ERPError(exc.code, kind, messages) from None
 
     def call(self, method, args=None):
         return self.request("POST", "method/" + method, args or {}).get("message")

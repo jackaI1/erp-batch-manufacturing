@@ -10,7 +10,17 @@ class ManufacturingIntegration(unittest.TestCase):
         from erp_demo.api import Client
         from erp_demo.workflow import seed, manufacture, recall, batch_balance, reconcile, trace
 
+        from erp_demo.api import ERPError
         api = Client.from_env()
+        request = api.request
+        def diagnostic_request(method, path, *args, **kwargs):
+            try:
+                return request(method, path, *args, **kwargs)
+            except ERPError as error:
+                # This opt-in test uses only synthetic demo records. Normal CLI errors stay private.
+                print(f"Synthetic-site diagnostic: {method} {path}: {error.server_messages}", flush=True)
+                raise
+        api.request = diagnostic_request
         first = seed(api)
         second = seed(api)
         self.assertEqual(first, second)

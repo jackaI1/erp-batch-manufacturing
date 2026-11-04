@@ -22,6 +22,11 @@ class QuantityValidation(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 reconcile(None, "RM-OIL-A", value)
 
+    def test_invalid_ph_rejected_before_network_calls(self):
+        for ph in (math.inf, math.nan, -1, 15):
+            with self.subTest(ph=ph), self.assertRaises(ValueError):
+                manufacture(None, "lotion", 10, "A", "test", ph=ph)
+
     def test_fractional_and_zero_physical_counts(self):
         self.assertEqual(positive_number("0.125"), 0.125)
         self.assertEqual(positive_number(0, allow_zero=True), 0)
@@ -65,6 +70,11 @@ class ClientHTTPTests(unittest.TestCase):
 
             def do_GET(self):
                 parsed = urlparse(self.path)
+                if parsed.path.endswith("/redirect"):
+                    self.send_response(302)
+                    self.send_header("Location", "/api/resource/Item/denied")
+                    self.end_headers()
+                    return
                 if parsed.path.endswith("/denied"):
                     self.send_response(403)
                     self.end_headers()
@@ -110,6 +120,11 @@ class ClientHTTPTests(unittest.TestCase):
         result = self.api.get("Work Order", "LOT/1")
         self.assertEqual(result["path"], "/api/resource/Work%20Order/LOT%2F1")
         self.assertEqual(result["authorization"], "token example:test")
+
+    def test_redirects_are_not_followed_with_credentials(self):
+        with self.assertRaises(ERPError) as context:
+            self.api.get("Item", "redirect")
+        self.assertEqual(context.exception.status, 302)
 
     def test_errors_hide_response_body(self):
         with self.assertRaises(ERPError) as context:

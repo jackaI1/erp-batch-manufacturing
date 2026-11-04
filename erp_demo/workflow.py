@@ -34,9 +34,18 @@ def positive_number(value, allow_zero=False):
 
 def seed(api):
     """Create missing master data and one opening receipt; never replenish on rerun."""
+    year = date.today().year
+    api.ensure("Fiscal Year", str(year), year=str(year), year_start_date=f"{year}-01-01",
+               year_end_date=f"{year}-12-31")
+    api.ensure("UOM", "Kg", uom_name="Kg", must_be_whole_number=0)
+    api.ensure("Item Group", "All Item Groups", item_group_name="All Item Groups", is_group=1)
+    for group in ("Raw Material", "Products"):
+        api.ensure("Item Group", group, item_group_name=group, parent_item_group="All Item Groups")
     api.ensure("Company", COMPANY, company_name=COMPANY, abbr=ABBR,
                          default_currency="CAD", country="Canada",
                          chart_of_accounts="Standard", create_chart_of_accounts_based_on="Standard Template")
+    api.update("Global Defaults", "Global Defaults", default_company=COMPANY, default_currency="CAD",
+               country="Canada", current_fiscal_year=str(year))
     api.update("Stock Settings", "Stock Settings", use_serial_batch_fields=1)
     api.update("Manufacturing Settings", "Manufacturing Settings", make_serial_no_batch_from_work_order=0)
     for name in ("Raw Materials", "Work In Progress", "Finished Goods"):
@@ -90,11 +99,15 @@ def seed(api):
         if bom["docstatus"] == 0:
             bom = api.submit(bom)
         boms[key] = bom["name"]
+    api.update("System Settings", "System Settings", setup_complete=1)
     return {"boms": boms, "batches": batches, "opening_receipt": receipt["name"]}
 
 
-def manufacture(api, formula, kg, lot, run_id):
+def manufacture(api, formula, kg, lot, run_id, *, ph=5.5, appearance="Uniform"):
     kg = positive_number(kg)
+    ph = float(ph)
+    if not math.isfinite(ph) or not 0 <= ph <= 14:
+        raise ValueError("pH must be finite and between 0 and 14")
     if formula not in FORMULAS or lot not in ("A", "B"):
         raise ValueError("Choose lotion/balm and raw lot A/B")
     if not re.fullmatch(r"[A-Za-z0-9-]{1,40}", run_id):
@@ -129,9 +142,9 @@ def manufacture(api, formula, kg, lot, run_id):
     for parameter in template["item_quality_inspection_parameter"]:
         reading = {k: parameter[k] for k in ("specification", "numeric", "min_value", "max_value", "value") if k in parameter}
         if parameter["specification"] == "pH":
-            reading["reading_1"] = "5.5"
+            reading["reading_1"] = str(ph)
         else:
-            reading["reading_value"] = "Uniform"
+            reading["reading_value"] = appearance
         readings.append(reading)
     qi = api.create("Quality Inspection", inspection_type="In Process", reference_type="Stock Entry",
                     reference_name=entry["name"], item_code=recipe["item"], batch_no=batch,
@@ -194,6 +207,24 @@ def recall(api, ingredient_batch):
                                "finished_batch": output["batch"], "produced_kg": output["kg"],
                                "work_order": entry["work_order"], "stock_entry": entry["name"]})
     return sorted(result, key=lambda row: row["finished_batch"])
+
+
+def trace(api, finished_batch):
+    """Read a finished lot's actual ingredient ancestry, not its theoretical BOM."""
+    api.get("Batch", finished_batch)
+    result = []
+    for ref in api.list("Stock Entry", {"company": COMPANY, "purpose": "Manufacture", "docstatus": 1}):
+        entry = api.get("Stock Entry", ref["name"])
+        lots = entry_lots(api, entry)
+        output_kg = sum(lot["kg"] for lot in lots if lot["finished"] and lot["batch"] == finished_batch)
+        if output_kg:
+            result.append({"finished_batch": finished_batch, "produced_kg": output_kg,
+                           "work_order": entry["work_order"], "stock_entry": entry["name"],
+                           "inspection": next((row.get("quality_inspection") for row in entry["items"]
+                                               if row.get("is_finished_item")), None),
+                           "ingredients": [{k: lot[k] for k in ("batch", "item", "kg")}
+                                           for lot in lots if not lot["finished"]]})
+    return sorted(result, key=lambda row: row["stock_entry"])
 
 
 def reconcile(api, batch, counted_kg):

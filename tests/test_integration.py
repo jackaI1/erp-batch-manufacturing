@@ -8,7 +8,7 @@ from uuid import uuid4
 class ManufacturingIntegration(unittest.TestCase):
     def test_manufacture_recall_inspection_and_count(self):
         from erp_demo.api import Client
-        from erp_demo.workflow import seed, manufacture, recall, batch_balance, reconcile
+        from erp_demo.workflow import seed, manufacture, recall, batch_balance, reconcile, trace
 
         api = Client.from_env()
         first = seed(api)
@@ -18,6 +18,13 @@ class ManufacturingIntegration(unittest.TestCase):
         self.assertEqual(len(first["batches"]), 12)
         self.assertAlmostEqual(batch_balance(api, "RM-OIL-A"), 100)
         run = uuid4().hex[:8]
+        # A rejected sample must leave its manufacturing entry unposted.
+        with self.assertRaisesRegex(ValueError, "Quality inspection rejected"):
+            manufacture(api, "lotion", 1, "A", f"{run}-rejected", ph=7.2)
+        self.assertAlmostEqual(batch_balance(api, "RM-OIL-A"), 100)
+        rejected = api.list("Quality Inspection", {"batch_no": f"FG-LOTION-{run}-rejected"}, ["status", "reference_name"])
+        self.assertEqual(rejected[0]["status"], "Rejected")
+        self.assertEqual(api.get("Stock Entry", rejected[0]["reference_name"])["docstatus"], 0)
         lotion = manufacture(api, "lotion", 10, "A", f"{run}-lotion")
         balm = manufacture(api, "balm", 5, "A", f"{run}-balm-a")
         other = manufacture(api, "balm", 5, "B", f"{run}-balm-b")
@@ -31,12 +38,21 @@ class ManufacturingIntegration(unittest.TestCase):
             self.assertEqual(qi["status"], "Accepted")
             self.assertEqual(qi["batch_no"], result["batch"])
             self.assertAlmostEqual(batch_balance(api, result["batch"]), qty)
+        ancestry = trace(api, lotion["batch"])
+        self.assertEqual(len(ancestry), 1)
+        self.assertEqual({row["batch"]: row["kg"] for row in ancestry[0]["ingredients"]}, {
+            "RM-WATER-A": 7, "RM-GLYCERIN-A": 0.5, "RM-OIL-A": 2,
+            "RM-EMULSIFIER-A": 0.4, "RM-PRESERVATIVE-A": 0.1})
         report = recall(api, "RM-OIL-A")
         self.assertEqual({r["finished_batch"] for r in report}, {lotion["batch"], balm["batch"]})
         self.assertEqual({r["consumed_kg"] for r in report}, {2.0, 4.0})
         self.assertNotIn(other["batch"], {r["finished_batch"] for r in report})
         self.assertEqual(recall(api, "RM-WAX-A")[0]["finished_batch"], balm["batch"])
         self.assertAlmostEqual(batch_balance(api, "RM-OIL-A"), 94)
+        for batch, expected in {"RM-WATER-A": 93, "RM-GLYCERIN-A": 99.5,
+                                "RM-EMULSIFIER-A": 99.6, "RM-PRESERVATIVE-A": 99.9,
+                                "RM-WAX-A": 99, "RM-WAX-B": 99}.items():
+            self.assertAlmostEqual(batch_balance(api, batch), expected)
         # Running setup again must not reset the stock already consumed.
         self.assertEqual(seed(api), first)
         self.assertAlmostEqual(batch_balance(api, "RM-OIL-A"), 94)

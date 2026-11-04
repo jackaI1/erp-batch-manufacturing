@@ -4,7 +4,13 @@ import os
 from http.cookiejar import CookieJar
 from urllib.error import HTTPError
 from urllib.parse import quote, urlencode, urlparse
-from urllib.request import HTTPCookieProcessor, Request, build_opener
+from urllib.request import HTTPCookieProcessor, HTTPRedirectHandler, Request, build_opener
+
+
+class NoRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        # A fixed API endpoint should never forward credentials to another URL.
+        return None
 
 
 class ERPError(RuntimeError):
@@ -24,7 +30,7 @@ class Client:
             raise ValueError("Use HTTPS for remote ERPNext sites")
         self.url = url.rstrip("/")
         self.token = token
-        self.opener = build_opener(HTTPCookieProcessor(CookieJar()))
+        self.opener = build_opener(HTTPCookieProcessor(CookieJar()), NoRedirect())
         if not token:
             if not user or not password:
                 raise ValueError("Set ERP_PASSWORD or ERP_TOKEN; see README")

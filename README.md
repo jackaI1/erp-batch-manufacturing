@@ -38,6 +38,7 @@ python3 -m erp_demo make lotion --kg 10 --lot A --run first-lotion
 python3 -m erp_demo make balm --kg 5 --lot A --run first-balm
 python3 -m erp_demo make balm --kg 5 --lot B --run separate-balm
 python3 -m erp_demo recall RM-OIL-A
+python3 -m erp_demo trace FG-LOTION-first-lotion
 python3 -m erp_demo balance RM-OIL-A
 ```
 
@@ -45,7 +46,7 @@ Each `make` command creates and completes a work order, the instruction to manuf
 
 The recall should find `FG-LOTION-first-lotion` and `FG-BALM-first-balm`. They used 2 kg and 4 kg of `RM-OIL-A`. The separate balm used oil lot B, so it stays out of that recall. Oil lot A now has **94 kg** left. This report reads ERPNext's posted lot records, rather than guessing from the formula.
 
-In the ERPNext search bar, open **Work Order**, **Stock Entry**, **Batch**, **Quality Inspection**, or **Stock Ledger** to inspect the underlying records. The lotion inspection records a generated pH reading of 5.5 against a permitted range of 5 to 6, plus a uniform appearance. The balm checks appearance. These checks demonstrate recorded release decisions; I have not measured real samples.
+In the ERPNext search bar, open **Work Order**, **Stock Entry**, **Batch**, **Quality Inspection**, or **Stock Ledger** to inspect the underlying records. The lotion inspection records a generated pH reading of 5.5 against a permitted range of 5 to 6, plus a uniform appearance. The balm checks appearance. These checks demonstrate recorded release decisions; I have not measured real samples. I can supply a different sample with `--ph 7.2` or `--appearance Separated`. A failed check leaves the manufacturing stock entry in draft and does not consume ingredients. The `trace` command works backward from a finished batch to its actual ingredient lots and inspection.
 
 ## Compare a physical count
 
@@ -86,4 +87,4 @@ python3 -m unittest discover -s tests -v
 ERP_INTEGRATION=1 python3 -m unittest discover -s tests -v
 ```
 
-The first command runs 11 local tests and skips the server test. GitHub Actions also starts a real ERPNext Docker stack and runs the integration test without a mock ERP. It verifies 3 completed work orders, 20 kg of finished product, all 12 ingredient lots, accepted inspections, exact ingredient consumption, exclusion of an unrelated lot, setup reruns, an insufficient-stock rejection, and a -0.25 kg reconciliation. Synthetic recall and balance reports are saved as the `compounding-evidence` CI artifact. Cleanup runs even if a check fails.
+The first command runs 13 local tests and skips the server test. GitHub Actions also starts a real ERPNext Docker stack and runs the integration test without a mock ERP. It verifies 3 completed work orders, 20 kg of finished product, all 12 ingredient lots, accepted and rejected inspections, exact ingredient consumption, exclusion of an unrelated lot, setup reruns, an insufficient-stock rejection, and a -0.25 kg reconciliation. Synthetic recall and balance reports are saved as the `compounding-evidence` CI artifact. Cleanup runs even if a check fails.

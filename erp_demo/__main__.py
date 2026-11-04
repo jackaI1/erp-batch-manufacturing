@@ -8,7 +8,7 @@ import time
 from urllib.error import URLError
 
 from .api import Client, ERPError
-from .workflow import seed, manufacture, recall, reconcile, batch_balance
+from .workflow import seed, manufacture, recall, reconcile, batch_balance, trace
 
 
 def init(path=Path(".env")):
@@ -30,8 +30,12 @@ def main():
     make.add_argument("--kg", type=float, required=True)
     make.add_argument("--lot", choices=["A", "B"], default="A")
     make.add_argument("--run", required=True, help="Unique letters/numbers/hyphens for the finished batch")
-    trace = sub.add_parser("recall", help="Find finished batches containing an ingredient lot")
-    trace.add_argument("batch")
+    make.add_argument("--ph", type=float, default=5.5, help="Lotion sample pH (default is a synthetic example)")
+    make.add_argument("--appearance", default="Uniform", help="Observed appearance (default is synthetic)")
+    recall_parser = sub.add_parser("recall", help="Find finished batches containing an ingredient lot")
+    recall_parser.add_argument("batch")
+    trace_parser = sub.add_parser("trace", help="Read a finished batch's actual ingredient lots and inspection")
+    trace_parser.add_argument("batch")
     balance = sub.add_parser("balance", help="Read current batch quantity from the posted stock ledger")
     balance.add_argument("batch")
     count = sub.add_parser("count", help="Post a raw lot physical count in Raw Materials")
@@ -58,9 +62,11 @@ def main():
             if args.command == "seed":
                 result = seed(api)
             elif args.command == "make":
-                result = manufacture(api, args.formula, args.kg, args.lot, args.run)
+                result = manufacture(api, args.formula, args.kg, args.lot, args.run, ph=args.ph, appearance=args.appearance)
             elif args.command == "recall":
                 result = recall(api, args.batch)
+            elif args.command == "trace":
+                result = trace(api, args.batch)
             elif args.command == "balance":
                 result = {"batch": args.batch, "kg": batch_balance(api, args.batch)}
             else:

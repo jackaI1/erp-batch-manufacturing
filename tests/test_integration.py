@@ -1,0 +1,57 @@
+"""Real ERPNext contract: intentionally opt in to a disposable demo site."""
+import os
+import unittest
+from uuid import uuid4
+
+
+@unittest.skipUnless(os.getenv("ERP_INTEGRATION") == "1", "requires real ERPNext")
+class ManufacturingIntegration(unittest.TestCase):
+    def test_manufacture_recall_inspection_and_count(self):
+        from erp_demo.api import Client
+        from erp_demo.workflow import seed, manufacture, recall, batch_balance, reconcile
+
+        api = Client.from_env()
+        first = seed(api)
+        second = seed(api)
+        self.assertEqual(first, second)
+        self.assertEqual(len(first["boms"]), 2)
+        self.assertEqual(len(first["batches"]), 12)
+        self.assertAlmostEqual(batch_balance(api, "RM-OIL-A"), 100)
+        run = uuid4().hex[:8]
+        lotion = manufacture(api, "lotion", 10, "A", f"{run}-lotion")
+        balm = manufacture(api, "balm", 5, "A", f"{run}-balm-a")
+        other = manufacture(api, "balm", 5, "B", f"{run}-balm-b")
+        for result, qty in [(lotion, 10), (balm, 5), (other, 5)]:
+            wo = api.get("Work Order", result["work_order"])
+            self.assertEqual(wo["status"], "Completed")
+            self.assertAlmostEqual(wo["produced_qty"], qty)
+            self.assertEqual(api.get("Stock Entry", result["stock_entry"])["docstatus"], 1)
+            qi = api.get("Quality Inspection", result["inspection"])
+            self.assertEqual(qi["docstatus"], 1)
+            self.assertEqual(qi["status"], "Accepted")
+            self.assertEqual(qi["batch_no"], result["batch"])
+            self.assertAlmostEqual(batch_balance(api, result["batch"]), qty)
+        report = recall(api, "RM-OIL-A")
+        self.assertEqual({r["finished_batch"] for r in report}, {lotion["batch"], balm["batch"]})
+        self.assertEqual({r["consumed_kg"] for r in report}, {2.0, 4.0})
+        self.assertNotIn(other["batch"], {r["finished_batch"] for r in report})
+        self.assertEqual(recall(api, "RM-WAX-A")[0]["finished_batch"], balm["batch"])
+        self.assertAlmostEqual(batch_balance(api, "RM-OIL-A"), 94)
+        # Running setup again must not reset the stock already consumed.
+        self.assertEqual(seed(api), first)
+        self.assertAlmostEqual(batch_balance(api, "RM-OIL-A"), 94)
+        adjustment = reconcile(api, "RM-OIL-A", 93.75)
+        self.assertAlmostEqual(adjustment["difference_kg"], -0.25)
+        self.assertEqual(api.get("Stock Reconciliation", adjustment["document"])["docstatus"], 1)
+        self.assertAlmostEqual(batch_balance(api, "RM-OIL-A"), 93.75)
+        self.assertEqual(recall(api, "RM-OIL-A"), report)
+        with self.assertRaises(ValueError):
+            manufacture(api, "lotion", 0, "A", "bad")
+        with self.assertRaises(ValueError):
+            reconcile(api, "RM-OIL-A", -1)
+        # ERPNext itself must reject a valid request larger than available lot stock.
+        from erp_demo.api import ERPError
+        with self.assertRaises(ERPError):
+            manufacture(api, "balm", 1000, "B", f"{run}-shortage")
+        self.assertAlmostEqual(batch_balance(api, "RM-OIL-B"), 96)
+        print("ERPNext verified: 3 completed work orders, 20 kg, 12 raw lots, selective recall, -0.25 kg count")

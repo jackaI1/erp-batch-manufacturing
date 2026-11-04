@@ -1,0 +1,67 @@
+name: Tests
+on:
+  push:
+    branches: [main, 'skills/**']
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: erp-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m unittest discover -s tests -v
+  erpnext:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Generate ephemeral credentials
+        run: python -m erp_demo init
+      - name: Start real ERPNext
+        run: docker compose up -d
+      - name: Wait for REST API
+        run: |
+          set -a
+          source .env
+          set +a
+          python -m erp_demo wait
+      - name: Exercise real compounding and record evidence
+        run: |
+          set -a
+          source .env
+          set +a
+          ERP_INTEGRATION=1 python -m unittest discover -s tests -v
+          mkdir -p artifacts
+          python -m erp_demo recall RM-OIL-A > artifacts/recall.json
+          python -m erp_demo balance RM-OIL-A > artifacts/balance.json
+      - name: Upload synthetic ledger evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: compounding-evidence
+          path: artifacts/*.json
+          if-no-files-found: ignore
+      - name: Bounded failure diagnostics
+        if: failure()
+        run: |
+          docker compose ps -a
+          docker compose logs --no-color --tail=40 backend create-site | sed -E 's/(password|secret|token)[^ ,]*/REDACTED/Ig' | tail -80
+      - name: Stop owned containers and remove generated data
+        if: always()
+        run: |
+          docker compose down --volumes --remove-orphans
+          if docker ps -aq --filter label=com.docker.compose.project=erp-compounding | grep -q .; then
+            echo 'Owned containers remain after cleanup'
+            exit 1
+          fi
+          rm -f .env

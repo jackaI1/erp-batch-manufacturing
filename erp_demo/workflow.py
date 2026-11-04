@@ -34,6 +34,10 @@ def positive_number(value, allow_zero=False):
 
 def seed(api):
     """Create missing master data and one opening receipt; never replenish on rerun."""
+    # Set the site's clock before posting stock; changing it afterwards backdates
+    # later orders relative to their receipts and correctly triggers negative-stock checks.
+    api.update("System Settings", "System Settings", language="en", time_zone="America/Toronto",
+               country="Canada")
     year = date.today().year
     api.ensure("Fiscal Year", str(year), year=str(year), year_start_date=f"{year}-01-01",
                year_end_date=f"{year}-12-31")

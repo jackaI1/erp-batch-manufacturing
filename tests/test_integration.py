@@ -27,6 +27,8 @@ class ManufacturingIntegration(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertEqual(len(first["boms"]), 2)
         self.assertEqual(len(first["batches"]), 12)
+        receipt = api.get("Stock Entry", first["opening_receipt"])
+        receipt_timestamp = receipt["posting_date"] + " " + receipt["posting_time"]
         self.assertAlmostEqual(batch_balance(api, "RM-OIL-A"), 100)
         run = uuid4().hex[:8]
         # A rejected sample must leave its manufacturing entry unposted.
@@ -48,7 +50,9 @@ class ManufacturingIntegration(unittest.TestCase):
             wo = api.get("Work Order", result["work_order"])
             self.assertEqual(wo["status"], "Completed")
             self.assertAlmostEqual(wo["produced_qty"], qty)
-            self.assertEqual(api.get("Stock Entry", result["stock_entry"])["docstatus"], 1)
+            movement = api.get("Stock Entry", result["stock_entry"])
+            self.assertEqual(movement["docstatus"], 1)
+            self.assertGreaterEqual(movement["posting_date"] + " " + movement["posting_time"], receipt_timestamp)
             qi = api.get("Quality Inspection", result["inspection"])
             self.assertEqual(qi["docstatus"], 1)
             self.assertEqual(qi["status"], "Accepted")

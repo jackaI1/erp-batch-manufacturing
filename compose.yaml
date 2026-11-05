@@ -1,0 +1,93 @@
+# Based on frappe/frappe_docker pwd.yml (MIT; see NOTICE).
+# Disposable local demonstration, never expose this site to the internet.
+name: erp-compounding
+x-frappe: &frappe
+  image: frappe/erpnext:v15.124.5
+  platform: linux/amd64
+  volumes:
+    - sites:/home/frappe/frappe-bench/sites
+    - logs:/home/frappe/frappe-bench/logs
+
+services:
+  db:
+    image: mariadb:10.6.25
+    command: [--character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, --skip-character-set-client-handshake]
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:?Run python3 -m erp_demo init}
+    volumes: [db-data:/var/lib/mysql]
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+  redis-cache:
+    image: redis:7.2.7-alpine
+  redis-queue:
+    image: redis:7.2.7-alpine
+  configurator:
+    <<: *frappe
+    entrypoint: [bash, -ec]
+    command:
+      - |
+        ls -1 apps > sites/apps.txt
+        bench set-config -g db_host db
+        bench set-config -gp db_port 3306
+        bench set-config -g redis_cache redis://redis-cache:6379
+        bench set-config -g redis_queue redis://redis-queue:6379
+        bench set-config -g redis_socketio redis://redis-queue:6379
+        bench set-config -gp socketio_port 9000
+    depends_on:
+      db: {condition: service_healthy}
+      redis-cache: {condition: service_started}
+      redis-queue: {condition: service_started}
+  create-site:
+    <<: *frappe
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD:?Run init}
+      ERP_PASSWORD: ${ERP_PASSWORD:?Run init}
+    entrypoint: [bash, -ec]
+    command:
+      - |
+        if [ ! -f sites/frontend/site_config.json ]; then
+          bench new-site frontend --mariadb-user-host-login-scope='%' \
+            --admin-password="$$ERP_PASSWORD" --db-root-username=root \
+            --db-root-password="$$DB_PASSWORD" --install-app erpnext --set-default
+        fi
+    depends_on:
+      configurator: {condition: service_completed_successfully}
+  backend:
+    <<: *frappe
+    depends_on:
+      create-site: {condition: service_completed_successfully}
+  worker:
+    <<: *frappe
+    command: [bench, worker, --queue, 'long,default,short']
+    depends_on:
+      create-site: {condition: service_completed_successfully}
+  scheduler:
+    <<: *frappe
+    command: [bench, schedule]
+    depends_on:
+      create-site: {condition: service_completed_successfully}
+  websocket:
+    <<: *frappe
+    command: [node, /home/frappe/frappe-bench/apps/frappe/socketio.js]
+    depends_on:
+      create-site: {condition: service_completed_successfully}
+  frontend:
+    <<: *frappe
+    command: [nginx-entrypoint.sh]
+    environment:
+      BACKEND: backend:8000
+      FRAPPE_SITE_NAME_HEADER: frontend
+      SOCKETIO: websocket:9000
+      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
+      UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
+      UPSTREAM_REAL_IP_RECURSIVE: 'off'
+      PROXY_READ_TIMEOUT: '120'
+    ports: ['127.0.0.1:8080:8080']
+    depends_on: [backend, websocket]
+volumes:
+  sites:
+  logs:
+  db-data:

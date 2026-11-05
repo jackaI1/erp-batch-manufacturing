@@ -1,7 +1,27 @@
 """Real ERPNext contract: intentionally opt in to a disposable demo site."""
 import os
 import unittest
+from datetime import datetime
 from uuid import uuid4
+
+
+def posting_timestamp(document):
+    # MariaDB serializes TIME values without zero padding. Text ordering is unsafe.
+    value = document["posting_date"] + " " + document["posting_time"]
+    format_string = "%Y-%m-%d %H:%M:%S.%f" if "." in value else "%Y-%m-%d %H:%M:%S"
+    return datetime.strptime(value, format_string)
+
+
+class PostingTimestampTests(unittest.TestCase):
+    def test_unpadded_seconds_are_compared_chronologically(self):
+        receipt = {"posting_date": "2026-11-04", "posting_time": "4:29:3.243269"}
+        movement = {"posting_date": "2026-11-04", "posting_time": "4:29:11.447271"}
+        self.assertGreater(posting_timestamp(movement), posting_timestamp(receipt))
+
+    def test_dates_and_whole_seconds_are_supported(self):
+        receipt = {"posting_date": "2026-11-04", "posting_time": "23:59:59"}
+        movement = {"posting_date": "2026-11-05", "posting_time": "0:0:0.000001"}
+        self.assertGreater(posting_timestamp(movement), posting_timestamp(receipt))
 
 
 @unittest.skipUnless(os.getenv("ERP_INTEGRATION") == "1", "requires real ERPNext")
@@ -28,7 +48,7 @@ class ManufacturingIntegration(unittest.TestCase):
         self.assertEqual(len(first["boms"]), 2)
         self.assertEqual(len(first["batches"]), 12)
         receipt = api.get("Stock Entry", first["opening_receipt"])
-        receipt_timestamp = receipt["posting_date"] + " " + receipt["posting_time"]
+        receipt_timestamp = posting_timestamp(receipt)
         self.assertAlmostEqual(batch_balance(api, "RM-OIL-A"), 100)
         run = uuid4().hex[:8]
         # A rejected sample must leave its manufacturing entry unposted.
@@ -52,7 +72,7 @@ class ManufacturingIntegration(unittest.TestCase):
             self.assertAlmostEqual(wo["produced_qty"], qty)
             movement = api.get("Stock Entry", result["stock_entry"])
             self.assertEqual(movement["docstatus"], 1)
-            self.assertGreaterEqual(movement["posting_date"] + " " + movement["posting_time"], receipt_timestamp)
+            self.assertGreaterEqual(posting_timestamp(movement), receipt_timestamp)
             qi = api.get("Quality Inspection", result["inspection"])
             self.assertEqual(qi["docstatus"], 1)
             self.assertEqual(qi["status"], "Accepted")

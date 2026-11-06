@@ -30,6 +30,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - run: pip install -r requirements.txt
       - run: python -m unittest discover -s tests -v
   erpnext:
     runs-on: ubuntu-latest
@@ -39,6 +40,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - run: pip install -r requirements.txt
       - name: Generate ephemeral credentials
         run: python -m erp_demo init
       - name: Start real ERPNext
@@ -54,7 +56,8 @@ jobs:
           set -a
           source .env
           set +a
-          ERP_INTEGRATION=1 python -m unittest discover -s tests -v
+          ERP_INTEGRATION=1 python -m pytest tests -q
+          python -m erp_demo.intake_benchmark --output artifacts/intake-parallel-run.json
           mkdir -p artifacts
           python -m erp_demo recall RM-OIL-A > artifacts/recall.json
           python -m erp_demo balance RM-OIL-A > artifacts/balance.json
@@ -62,7 +65,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: compounding-evidence
-          path: artifacts/*.json
+          path: |
+            artifacts/*.json
+            artifacts/*.csv
           if-no-files-found: ignore
       - name: Bounded failure diagnostics
         if: failure()

@@ -1,0 +1,76 @@
+{
+  "provenance": "Hand-authored synthetic protocol fixture; not a live model capture",
+  "backend": "anthropic",
+  "source_sha256": "b367ed5dbdd3d29fbcc0e543311b325d45570b3af0024396f9f9a9dd38bee08f",
+  "response": {
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "synthetic_two-page",
+        "name": "extract_order",
+        "input": {
+          "customer": {
+            "value": "SYN-CUSTOMER",
+            "page": 1,
+            "text": "SYN-CUSTOMER",
+            "confidence": 0.99
+          },
+          "purchase_order": {
+            "value": "SYN-PO-7",
+            "page": 1,
+            "text": "SYN-PO-7",
+            "confidence": 0.99
+          },
+          "currency": {
+            "value": "CAD",
+            "page": 1,
+            "text": "CAD",
+            "confidence": 0.99
+          },
+          "lines": [
+            {
+              "item": {
+                "value": "FG-LOTION",
+                "page": 1,
+                "text": "FG-LOTION",
+                "confidence": 0.99
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "text": "2",
+                "confidence": 0.99
+              },
+              "unit_price": {
+                "value": "12.50",
+                "page": 1,
+                "text": "12.50",
+                "confidence": 0.99
+              }
+            },
+            {
+              "item": {
+                "value": "FG-BALM",
+                "page": 2,
+                "text": "FG-BALM",
+                "confidence": 0.99
+              },
+              "quantity": {
+                "value": "1",
+                "page": 2,
+                "text": "1",
+                "confidence": 0.99
+              },
+              "unit_price": {
+                "value": "15.00",
+                "page": 2,
+                "text": "15.00",
+                "confidence": 0.99
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

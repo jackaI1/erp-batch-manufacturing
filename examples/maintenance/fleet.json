@@ -1,0 +1,153 @@
+{
+  "label": "Synthetic fleet and illustrative intervals; not regulatory advice",
+  "assets": [
+    {
+      "Code": "TUG-01",
+      "Kind": "vessel",
+      "Vessel": "TUG-01",
+      "ParentCode": "",
+      "Serial": "SYN-TUG-001",
+      "RunningHours": 1200,
+      "DailyHours": 4,
+      "ReplacementCost": 400000
+    },
+    {
+      "Code": "TUG-PROP",
+      "Kind": "system",
+      "Vessel": "TUG-01",
+      "ParentCode": "TUG-01",
+      "Serial": "SYN-PROP-001",
+      "RunningHours": 1200,
+      "DailyHours": 4,
+      "ReplacementCost": 50000
+    },
+    {
+      "Code": "TUG-ENGINE",
+      "Kind": "component",
+      "Vessel": "TUG-01",
+      "ParentCode": "TUG-PROP",
+      "Serial": "SYN-ENGINE-001",
+      "RunningHours": 1200,
+      "DailyHours": 4,
+      "ReplacementCost": 25000
+    },
+    {
+      "Code": "TUG-PUMP",
+      "Kind": "component",
+      "Vessel": "TUG-01",
+      "ParentCode": "TUG-PROP",
+      "Serial": "SYN-PUMP-001",
+      "RunningHours": 1200,
+      "DailyHours": 4,
+      "ReplacementCost": 2000
+    },
+    {
+      "Code": "BARGE-01",
+      "Kind": "vessel",
+      "Vessel": "BARGE-01",
+      "ParentCode": "",
+      "Serial": "SYN-BARGE-001",
+      "RunningHours": 200,
+      "DailyHours": 1,
+      "ReplacementCost": 180000
+    },
+    {
+      "Code": "BARGE-DECK",
+      "Kind": "system",
+      "Vessel": "BARGE-01",
+      "ParentCode": "BARGE-01",
+      "Serial": "SYN-DECK-001",
+      "RunningHours": 200,
+      "DailyHours": 1,
+      "ReplacementCost": 10000
+    },
+    {
+      "Code": "BARGE-WINCH",
+      "Kind": "component",
+      "Vessel": "BARGE-01",
+      "ParentCode": "BARGE-DECK",
+      "Serial": "SYN-WINCH-001",
+      "RunningHours": 200,
+      "DailyHours": 1,
+      "ReplacementCost": 5000
+    },
+    {
+      "Code": "BARGE-SPARE",
+      "Kind": "component",
+      "Vessel": "BARGE-01",
+      "ParentCode": "BARGE-DECK",
+      "Serial": "SYN-SPARE-001",
+      "RunningHours": 0,
+      "DailyHours": 0,
+      "ReplacementCost": 1000
+    }
+  ],
+  "plans": [
+    {
+      "Code": "ENGINE-OIL",
+      "AssetCode": "TUG-ENGINE",
+      "Task": "Change engine oil",
+      "Category": "preventive",
+      "FailureCode": "LUBE",
+      "IntervalHours": 250,
+      "LastHours": 900,
+      "NextDate": "",
+      "EstimatedCost": 180
+    },
+    {
+      "Code": "PUMP-BEARING",
+      "AssetCode": "TUG-PUMP",
+      "Task": "Inspect bearing vibration",
+      "Category": "condition",
+      "FailureCode": "BEARING",
+      "IntervalHours": 500,
+      "LastHours": 500,
+      "NextDate": "",
+      "EstimatedCost": 80
+    },
+    {
+      "Code": "WINCH-GREASE",
+      "AssetCode": "BARGE-WINCH",
+      "Task": "Grease winch",
+      "Category": "preventive",
+      "FailureCode": "LUBE",
+      "IntervalHours": 250,
+      "LastHours": 0,
+      "NextDate": "2026-11-15",
+      "EstimatedCost": 50
+    },
+    {
+      "Code": "TUG-CLASS",
+      "AssetCode": "TUG-01",
+      "Task": "Illustrative class survey",
+      "Category": "class",
+      "FailureCode": "SURVEY",
+      "IntervalHours": 0,
+      "LastHours": 0,
+      "NextDate": "2026-10-20",
+      "EstimatedCost": 5000
+    },
+    {
+      "Code": "BARGE-REG",
+      "AssetCode": "BARGE-01",
+      "Task": "Illustrative regulatory survey",
+      "Category": "regulatory",
+      "FailureCode": "SURVEY",
+      "IntervalHours": 0,
+      "LastHours": 0,
+      "NextDate": "2026-12-10",
+      "EstimatedCost": 2500
+    },
+    {
+      "Code": "DECK-ANNUAL",
+      "AssetCode": "BARGE-DECK",
+      "Task": "Inspect deck",
+      "Category": "preventive",
+      "FailureCode": "CORROSION",
+      "IntervalHours": 0,
+      "LastHours": 0,
+      "NextDate": "2027-01-15",
+      "EstimatedCost": 120
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "provenance": "Hand-authored synthetic protocol fixture; not a live model capture",
+  "backend": "anthropic",
+  "source_sha256": "842d4018703e10da77324da9a840db9f3cd08d10adac4c9fe32f526798f0d250",
+  "response": {
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "synthetic_price",
+        "name": "extract_order",
+        "input": {
+          "customer": {
+            "value": "SYN-CUSTOMER",
+            "page": 1,
+            "text": "SYN-CUSTOMER",
+            "confidence": 0.99
+          },
+          "purchase_order": {
+            "value": "SYN-PO-3",
+            "page": 1,
+            "text": "SYN-PO-3",
+            "confidence": 0.99
+          },
+          "currency": {
+            "value": "CAD",
+            "page": 1,
+            "text": "CAD",
+            "confidence": 0.99
+          },
+          "lines": [
+            {
+              "item": {
+                "value": "FG-LOTION",
+                "page": 1,
+                "text": "FG-LOTION",
+                "confidence": 0.99
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "text": "2",
+                "confidence": 0.99
+              },
+              "unit_price": {
+                "value": "11.00",
+                "page": 1,
+                "text": "11.00",
+                "confidence": 0.99
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

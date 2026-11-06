@@ -1,0 +1,46 @@
+name: Local extraction model
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: ollama-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  real-ollama:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - name: Start owned CPU-only model server on Linux runner
+        run: |
+          docker run -d --name intake-ollama -p 127.0.0.1:11434:11434 ollama/ollama:0.13.0
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:11434/api/version; then break; fi
+            sleep 2
+          done
+          docker exec intake-ollama ollama pull qwen3:1.7b
+      - name: Real tool-use extraction and parallel comparison
+        env:
+          OLLAMA_INTEGRATION: '1'
+          INTAKE_MODEL: qwen3:1.7b
+        run: |
+          python -m unittest discover -s tests -p test_ollama_live.py -v
+          python -m erp_demo.intake_benchmark --backend ollama --model qwen3:1.7b --output artifacts/ollama/parallel-run.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: real-ollama-intake
+          path: artifacts/ollama/
+      - name: Remove owned model process and weights
+        if: always()
+        run: |
+          docker rm -f -v intake-ollama
+          test -z "$(docker ps -aq --filter name='^intake-ollama$')"

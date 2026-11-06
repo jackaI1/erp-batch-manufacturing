@@ -1,0 +1,153 @@
+[
+  {
+    "id": "clean",
+    "file": "clean.eml",
+    "reference": {
+      "customer": "SYN-CUSTOMER",
+      "purchase_order": "SYN-PO-1",
+      "currency": "CAD",
+      "lines": [
+        {
+          "item": "FG-LOTION",
+          "quantity": "2",
+          "unit_price": "12.50"
+        }
+      ]
+    },
+    "expected_status": "ready"
+  },
+  {
+    "id": "unknown",
+    "file": "unknown.eml",
+    "reference": {
+      "customer": "SYN-CUSTOMER",
+      "purchase_order": "SYN-PO-2",
+      "currency": "CAD",
+      "lines": [
+        {
+          "item": "FG-UNKNOWN",
+          "quantity": "2",
+          "unit_price": "12.50"
+        }
+      ]
+    },
+    "expected_status": "review"
+  },
+  {
+    "id": "price",
+    "file": "price.eml",
+    "reference": {
+      "customer": "SYN-CUSTOMER",
+      "purchase_order": "SYN-PO-3",
+      "currency": "CAD",
+      "lines": [
+        {
+          "item": "FG-LOTION",
+          "quantity": "2",
+          "unit_price": "11.00"
+        }
+      ]
+    },
+    "expected_status": "review"
+  },
+  {
+    "id": "weak",
+    "file": "weak.eml",
+    "reference": {
+      "customer": "SYN-CUSTOMER",
+      "purchase_order": "SYN-PO-4",
+      "currency": "CAD",
+      "lines": [
+        {
+          "item": "FG-LOTION",
+          "quantity": "2",
+          "unit_price": "12.50"
+        }
+      ]
+    },
+    "expected_status": "review"
+  },
+  {
+    "id": "invented",
+    "file": "invented.eml",
+    "reference": {
+      "customer": "SYN-CUSTOMER",
+      "purchase_order": "SYN-PO-5",
+      "currency": "CAD",
+      "lines": [
+        {
+          "item": "FG-LOTION",
+          "quantity": "2",
+          "unit_price": "12.50"
+        }
+      ]
+    },
+    "expected_status": "review"
+  },
+  {
+    "id": "omitted",
+    "file": "omitted.eml",
+    "reference": {
+      "customer": "SYN-CUSTOMER",
+      "purchase_order": "SYN-PO-6",
+      "currency": "CAD",
+      "lines": [
+        {
+          "item": "FG-LOTION",
+          "quantity": "2",
+          "unit_price": "12.50"
+        },
+        {
+          "item": "FG-BALM",
+          "quantity": "1",
+          "unit_price": "15.00"
+        }
+      ]
+    },
+    "expected_status": "review"
+  },
+  {
+    "id": "two-page",
+    "file": "two-page.pdf",
+    "reference": {
+      "customer": "SYN-CUSTOMER",
+      "purchase_order": "SYN-PO-7",
+      "currency": "CAD",
+      "lines": [
+        {
+          "item": "FG-LOTION",
+          "quantity": "2",
+          "unit_price": "12.50"
+        },
+        {
+          "item": "FG-BALM",
+          "quantity": "1",
+          "unit_price": "15.00"
+        }
+      ]
+    },
+    "expected_status": "ready"
+  },
+  {
+    "id": "attachment",
+    "file": "attachment.eml",
+    "reference": {
+      "customer": "SYN-CUSTOMER",
+      "purchase_order": "SYN-PO-7",
+      "currency": "CAD",
+      "lines": [
+        {
+          "item": "FG-LOTION",
+          "quantity": "2",
+          "unit_price": "12.50"
+        },
+        {
+          "item": "FG-BALM",
+          "quantity": "1",
+          "unit_price": "15.00"
+        }
+      ]
+    },
+    "expected_status": "ready"
+  }
+]

@@ -1,0 +1,50 @@
+name: Fleet maintenance
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: fleet-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  openmaint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install small client and analysis dependencies
+        run: |
+          pip install -r maintenance/requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Generate disposable database password
+        run: echo "MAINT_DB_PASSWORD=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
+      - name: Start pinned real openMAINT
+        run: docker compose -f compose.maintenance.yaml up -d
+      - name: Wait for real API
+        run: python -m maintenance wait
+      - name: Exercise fleet records and condition monitoring
+        env:
+          MAINT_INTEGRATION: '1'
+        run: |
+          python -m unittest discover -s tests -p 'test_maintenance*.py' -v
+          python -m maintenance demo --output artifacts/maintenance
+          python -m maintenance.public_vibration --output artifacts/maintenance/vibration.json
+          python -m maintenance.screenshots --output artifacts/maintenance
+      - name: Upload synthetic records and real UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fleet-maintenance-evidence
+          path: artifacts/maintenance/
+      - name: Diagnostics on failure
+        if: failure()
+        run: docker compose -f compose.maintenance.yaml logs --tail 100 app
+      - name: Remove this job's containers and data
+        if: always()
+        run: docker compose -f compose.maintenance.yaml down --volumes --remove-orphans

@@ -58,7 +58,7 @@ def contract_server():
             if self.command == 'GET' and parsed.path == prefix + '/salesOrders(' + ORDER + ')':
                 return self.respond(200, {'id': ORDER, 'status': 'Draft', '@odata.etag': 'W/"1"', 'salesOrderLines': [{'itemId': ITEM, 'quantity': 2}]}, {'ETag': 'W/"1"'})
             if self.command == 'POST' and parsed.path == prefix + '/salesOrders':
-                return self.respond(201, dict(body, id=ORDER, status='Draft', **{'@odata.etag': 'W/"1"'}))
+                return self.respond(201, dict(body, id=ORDER, status='Draft', pricesIncludeTax=False, **{'@odata.etag': 'W/"1"'}))
             if self.command == 'POST' and parsed.path == prefix + '/salesOrders(' + ORDER + ')/salesOrderLines':
                 if state['fail_line']:
                     return self.respond(400, {'error': {'code': 'BadRequest'}})

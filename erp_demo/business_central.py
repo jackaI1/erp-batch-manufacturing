@@ -8,6 +8,7 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 import json
 import os
+import re
 from urllib.error import HTTPError
 from urllib.parse import parse_qsl, unquote, urlencode, urljoin, urlparse
 from urllib.request import Request, build_opener
@@ -140,7 +141,7 @@ class BusinessCentral:
         return self._request('GET', self.company_url + '/salesOrders(' + _guid(order_id) + ')?' +
                              urlencode({'$expand': 'salesOrderLines'}))
 
-    def create_draft_sales_order(self, customer_id, purchase_order, lines, *, order_date=None):
+    def create_draft_sales_order(self, customer_id, purchase_order, lines, *, order_date=None, currency_code=None):
         """Create an unposted header and lines. Review fields before calling.
 
         API header/line requests are separate transactions. A partial failure
@@ -156,11 +157,23 @@ class BusinessCentral:
             validated.append({'itemId': _guid(line['item_id']), 'lineType': 'Item',
                               'quantity': _number(line['quantity'], positive=True),
                               'unitPrice': _number(line['unit_price'], positive=False)})
+            if 'unit_of_measure_code' in line:
+                _literal(line['unit_of_measure_code'])
+                validated[-1]['unitOfMeasureCode'] = line['unit_of_measure_code']
         order_date = date.fromisoformat(order_date).isoformat() if order_date else date.today().isoformat()
-        header = self._request('POST', self.company_url + '/salesOrders', {
-            'customerId': customer_id, 'externalDocumentNumber': purchase_order, 'orderDate': order_date})
+        header_fields = {'customerId': customer_id, 'externalDocumentNumber': purchase_order, 'orderDate': order_date}
+        if currency_code is not None:
+            if currency_code != '' and not re.fullmatch(r'[A-Z]{3}', currency_code):
+                raise ValueError('Use an ISO currency code or blank for configured base currency')
+            header_fields['currencyCode'] = currency_code
+        header = self._request('POST', self.company_url + '/salesOrders', header_fields)
         order_id = _guid(header['id'])
         try:
+            # Item.priceIncludesTax and SalesOrder.pricesIncludeTax are separate.
+            # The order flag is read-only: inspect the server-created header
+            # before writing a single line, and retain its ID for recovery.
+            if header.get('pricesIncludeTax') is not False:
+                raise ValueError('Order tax basis is inclusive or unknown; human review required')
             for line in validated:
                 self._request('POST', self.company_url + '/salesOrders(' + order_id + ')/salesOrderLines', line)
             return self.get_order(order_id)
@@ -173,3 +186,117 @@ class BusinessCentral:
         if not isinstance(fields, dict) or not fields:
             raise ValueError('Provide the changed order fields')
         return self._request('PATCH', self.company_url + '/salesOrders(' + _guid(order_id) + ')', fields, etag)
+
+
+class BusinessCentralOrders:
+    """Connect the source-reviewed intake interface to Business Central OData.
+
+    Only the explicitly configured company base currency and an item's untaxed
+    base-unit catalog price are supported. Customer-specific price agreements,
+    alternate units and foreign-currency conversion require human review. This
+    adapter runs against the same HTTP client as the low-level contract tests;
+    it does not turn a local contract server into a live Microsoft tenant.
+    """
+    def __init__(self, api, *, base_currency):
+        if not isinstance(base_currency, str) or not re.fullmatch(r'[A-Z]{3}', base_currency):
+            raise ValueError('Configure the company base currency explicitly, for example CAD')
+        self.api = api
+        self.base_currency = base_currency
+
+    @classmethod
+    def from_env(cls):
+        # A missing base currency must never silently label catalog prices CAD.
+        base_currency = os.environ['BC_BASE_CURRENCY']
+        return cls(BusinessCentral.from_env(), base_currency=base_currency)
+
+    def _customer(self, code):
+        row = self.api.get_customer(code)
+        if not row or row.get('blocked') not in ('', ' '):
+            return None
+        currency = row.get('currencyCode')
+        if not isinstance(currency, str) or (currency and not re.fullmatch(r'[A-Z]{3}', currency)):
+            return None
+        try:
+            _guid(row['id'])
+        except (KeyError, TypeError, ValueError):
+            return None
+        return row
+
+    def get_customer(self, code):
+        row = self._customer(code)
+        if row is None:
+            return None
+        # Business Central uses blank currencyCode for the company's local currency.
+        return {'name': row['number'], 'currency': row['currencyCode'] or self.base_currency}
+
+    def _item(self, row):
+        if (row.get('blocked') is not False or row.get('priceIncludesTax') is not False or
+                row.get('baseUnitOfMeasureCode') not in ('Kg', 'KG')):
+            return None
+        try:
+            _guid(row['id'])
+            _literal(row['number'])
+            _literal(row['baseUnitOfMeasureCode'])
+            _number(row['unitPrice'], positive=False)
+        except (KeyError, TypeError, ValueError):
+            return None
+        return {'item_code': row['number'], 'price': str(row['unitPrice']),
+                'currency': self.base_currency, 'uom': row['baseUnitOfMeasureCode']}
+
+    def search_items(self, query):
+        result = []
+        for row in self.api.search_items(query):
+            item = self._item(row)
+            if item is not None:
+                result.append(item)
+        return result
+
+    def create_draft(self, data):
+        """Recheck current master data and map reviewed generic fields to OData.
+
+        No ERPNext company, warehouse or document-status fields are forwarded.
+        The duplicate check prevents sequential reruns, not concurrent requests;
+        a timeout or PartialOrderError still requires inspecting the server.
+        """
+        if not isinstance(data, dict) or type(data.get('docstatus', 0)) is not int or data.get('docstatus', 0) != 0:
+            raise ValueError('Only draft order proposals are allowed')
+        if data.get('currency') != self.base_currency:
+            raise ValueError('Foreign currency requires human review; no conversion is inferred')
+        customer_code, purchase_order = data.get('customer'), data.get('po_no')
+        _literal(customer_code)
+        _literal(purchase_order)
+        transaction_date = date.fromisoformat(data['transaction_date']).isoformat()
+        proposed_items = data.get('items')
+        if not isinstance(proposed_items, list) or not proposed_items or len(proposed_items) > 100:
+            raise ValueError('A reviewed order needs between one and 100 lines')
+        customer = self._customer(customer_code)
+        if customer is None:
+            raise ValueError('Customer unknown, blocked or missing data; human review required')
+        if (customer['currencyCode'] or self.base_currency) != self.base_currency:
+            raise ValueError('Customer currency changed; human review required')
+        customer_id = _guid(customer['id'])
+        lines = []
+        for proposed in proposed_items:
+            if not isinstance(proposed, dict):
+                raise ValueError('Each proposed order line must be a mapping')
+            code = proposed.get('item_code')
+            _literal(code)
+            quantity = _number(proposed.get('qty'), positive=True)
+            price = _number(proposed.get('rate'), positive=False)
+            matches = [row for row in self.api.search_items(code) if row.get('number') == code]
+            if len(matches) != 1 or self._item(matches[0]) is None:
+                raise ValueError('Item unknown, ambiguous, blocked or missing data; human review required')
+            item = matches[0]
+            if Decimal(str(proposed['rate'])) != Decimal(str(item['unitPrice'])):
+                raise ValueError('Catalog price changed; human review required')
+            lines.append({'item_id': _guid(item['id']), 'quantity': quantity, 'unit_price': price,
+                          'unit_of_measure_code': item['baseUnitOfMeasureCode']})
+        previous = self.api._collection('salesOrders', {
+            '$filter': 'externalDocumentNumber eq ' + _literal(purchase_order) +
+                       ' and customerId eq ' + customer_id})
+        if previous:
+            raise ValueError('Purchase order already exists; inspect it before retrying')
+        # Blank explicitly selects the configured local currency. It is not a
+        # guessed tenant currency or an invented code in the tenant currency table.
+        return self.api.create_draft_sales_order(customer_id, purchase_order, lines,
+                                                order_date=transaction_date, currency_code='')

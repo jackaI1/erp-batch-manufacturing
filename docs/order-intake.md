@@ -12,7 +12,7 @@ Use Python 3.11 or newer:
 
 ```sh
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+.venv/bin/pip install --index-url https://pypi.org/simple -r requirements.txt
 .venv/bin/python -m erp_demo.intake_benchmark --output artifacts/intake-parallel-run.json
 cat artifacts/intake-parallel-run.json
 ```
@@ -55,7 +55,9 @@ For Ollama, a local model service, install it on that computer and run
 For Anthropic's Messages API, set `ANTHROPIC_API_KEY` in the environment and use
 `--backend anthropic --model YOUR_AVAILABLE_MODEL_ID`. Never commit a key.
 The adapter sends a tool definition and requires exactly one `extract_order`
-call. Both services go through the same schema and source checks. CI tests both
+call. Both services go through the same schema and source checks. The destination is
+selected separately with `INTAKE_ERP=erpnext` (default) or
+`INTAKE_ERP=business-central`; CLI users can also pass `--erp business-central`. CI tests both
 HTTP response formats and runs real CPU Ollama inference on Linux. It does not
 call a paid Anthropic account. Real responses and the live parallel report are
 uploaded separately as the `real-ollama-intake` Actions artifact.
@@ -103,7 +105,7 @@ Stock lines use the demo Finished Goods warehouse; the draft does not reserve or
 
 ## Boundaries and recovery
 
-- Exact codes, CAD prices and kilograms only; no fuzzy customer matches or unit conversions.
+- Exact codes and kilograms only; ERPNext uses the Synthetic CAD price list. Business Central requires an explicit base currency and holds other currencies, blocked records and tax-inclusive catalog prices. No fuzzy matches or unit conversions.
 - The independent line-completeness check supports the included `ITEM | quantity | price`
   table layout. Other layouts are held for manual review, even if the model finds values.
 - Plain email text and text PDFs only. Scans, encryption and empty pages are held
@@ -147,3 +149,15 @@ for a clean proposal and two need catalog review. The replay has separate
 expected decisions because it deliberately injects a weak score, invented value
 and missing line into otherwise valid documents. Those injected problems are
 not facts about the source orders or expected mistakes from a real model.
+
+## Reproduce the environment
+
+`requirements.txt` locks direct and transitive dependencies resolved from
+public PyPI, using releases available before 1 January 2026. To regenerate it:
+
+```sh
+uv pip compile requirements.in --exclude-newer 2026-01-01 --index-url https://pypi.org/simple -o requirements.txt
+```
+
+Install with the public index command above if a private package mirror has
+different contents. No global Python or package-index setting is changed.

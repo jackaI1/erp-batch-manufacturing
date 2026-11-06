@@ -36,18 +36,49 @@ PY
 
 `search_items` searches item numbers. `get_customer` requires an exact customer number and returns `None` for an unknown number. Ambiguous numbers are held for review.
 
-After reviewing the source document, customer, quantities and agreed prices, I can call:
+## Use the same document review and MCP tools
 
-```python
-order = api.create_draft_sales_order(
-    customer_id=reviewed_customer['id'],
-    purchase_order='SYNTH-PO-001',
-    lines=[{'item_id': reviewed_item['id'], 'quantity': '2', 'unit_price': '8.00'}],
-)
-print(order['id'], order['status'])
+`BusinessCentralOrders` connects this interface to the order intake. The customer
+and item numbers still come from the document. The connector reads their real
+IDs and catalog prices, then the shared review gate verifies every field before
+any header or line write. The MCP server and intake CLI select this destination
+with the same configuration:
+
+```sh
+export INTAKE_ERP=business-central
+export BC_BASE_CURRENCY=CAD  # explicitly confirm the sandbox company's base currency
+# BC_API_URL, BC_COMPANY_ID and BC_TOKEN are set as above
+.venv/bin/python -m erp_demo.intake_cli examples/intake/clean.eml --backend ollama --model qwen3:1.7b
+# After inspecting the review result, explicitly create an unposted draft:
+.venv/bin/python -m erp_demo.intake_cli examples/intake/clean.eml --backend ollama --model qwen3:1.7b --create-draft
+# An MCP host launches this server with those same environment variables:
+.venv/bin/python -m erp_demo.mcp_server
 ```
 
-The example variable names deliberately require reviewed records from the sandbox. No customer or item identifier is invented. The connector creates a sales-order header, then its item lines, and reads the order back with its lines. It never calls shipping, invoicing or posting actions. Unlike the ERPNext intake gate, this low-level connector does not itself extract a document, check catalog prices or prevent repeat purchase-order numbers; the calling application must review those before writing.
+The sandbox needs customer `SYN-CUSTOMER` and item `FG-LOTION` with an enabled
+base-unit catalog price of 12.50 in CAD to match the sample. These are setup
+examples, not invented tenant IDs. I use the local contract server for CI, so I
+have not provisioned or connected a Microsoft tenant.
+
+`search_items`, `get_customer` and `create_draft_sales_order` now use the selected
+ERP. The adapter requires an explicit base currency; an empty customer currency
+code means that configured base currency. It holds blocked records, unsupported
+units or currencies, ambiguous prices and tax-inclusive catalog prices. Customer
+price agreements, discounts and tax rules need separate tenant-specific review.
+
+Before writing, it re-reads customer and item records and checks for an existing
+customer/PO combination. It maps exact reviewed numbers to their actual GUIDs,
+creates the unposted header and lines, then reads the draft back with its lines.
+It also checks the created header's read-only `pricesIncludeTax` flag before writing any lines. A true or missing flag stops the operation and reports the partial header ID for review. It never calls shipping, invoicing or posting actions. A lost response still
+requires inspection; the sequential duplicate check is not an atomic uniqueness
+constraint across concurrent workers.
+
+`tests/test_mcp_odata.py` opens a real official-SDK MCP session and a local OData
+HTTP contract. It replays an actual recorded Ollama extraction from a source
+email, proves unknown items, price conflicts and weak evidence cause no write,
+then checks the posted draft header/line payloads and duplicate-PO rejection.
+The low-level client remains available for deliberately reviewed callers:
+`api.create_draft_sales_order(customer_id, purchase_order, reviewed_lines)`.
 
 ## Read pages and edit safely
 

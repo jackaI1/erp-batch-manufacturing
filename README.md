@@ -1,10 +1,12 @@
 # Batch compounding notebook
 
-I built a small batch-tracking system because I wanted to understand how a compounding line keeps track of every ingredient after it becomes part of a finished product. A spreadsheet can tell me how much oil I bought. I wanted to answer a harder question: if one oil lot has a problem, which batches of lotion and balm need to be checked?
+I built a small workshop tracker because I wanted to see which finished batches and equipment builds need checking when an ingredient lot or a part changes. A spreadsheet can tell me how much oil I bought. I wanted to follow that oil into finished lotion, and keep the filling equipment's parts list consistent with its drawing.
 
-I set up an open-source ERP, a system that connects production and inventory, using ERPNext. This project runs a fictional skincare workshop. It receives ingredient lots, stores two formulas, makes finished batches, records quality checks, and compares the stock record with a physical count. Everything is generated demo data, including the readings. These are bookkeeping examples, not tested cosmetic recipes.
+I set up an open-source ERP, a system that connects production and inventory, using ERPNext. This project runs a fictional skincare workshop. It receives ingredient lots, makes finished batches, records quality checks, and compares the stock record with a physical count. It also reads a parts list from FreeCAD, a free drawing and modelling tool, and checks equipment revisions before copying them into the same system. Everything is generated demo data, including the readings and simplified equipment models. These are bookkeeping examples, not tested cosmetic recipes or validated machine designs.
 
 To try it, start the local workshop with the commands below. Then make a batch and ask which finished products contain a particular ingredient lot. The same records are visible in ERPNext at [localhost:8080](http://localhost:8080).
+
+For a quick look without starting a server, download this repository and run `python3 -m erp_demo cad-reuse examples/cad/filler-A.json`. It shows the parts shared by the lotion and balm filling fixtures, including 12 mounting bolts. [Sync the equipment parts](#keep-equipment-parts-and-drawings-together) after starting the workshop.
 
 ## Start the workshop
 
@@ -61,6 +63,31 @@ This posts a stock reconciliation, an adjustment from the recorded amount to the
 
 I can rerun `seed` without adding the opening stock again. Each manufacturing run needs a new `--run` name. If a request fails midway, I inspect its draft records before retrying: ERPNext commits each document separately, so the whole command is not one transaction.
 
+## Keep equipment parts and drawings together
+
+The two filling fixtures use different nozzles but share a base and a head mount. A bill of materials can contain another bill of materials: each head mount has a bracket and four bolts. This is a multi-level BOM, a parts list with smaller assemblies inside it. I keep the lotion and balm fixtures as two configurations of one equipment family in ERPNext.
+
+After `seed`, load the approved part numbers and review the first drawing revision:
+
+```sh
+python3 -m erp_demo cad-setup examples/cad/catalog.json
+mkdir -p artifacts
+python3 -m erp_demo cad-plan examples/cad/filler-A.json > artifacts/cad-plan.json
+cat artifacts/cad-plan.json
+```
+
+The plan lists proposed BOMs, problems that need review, shared parts, and an `approval` value. Once I have checked it, I copy that value into this command:
+
+```sh
+python3 -m erp_demo cad-sync examples/cad/filler-A.json --approve PASTE_APPROVAL_VALUE
+```
+
+This submits three linked BOMs through ERPNext's REST API, the interface scripts use to read and write records. Running it again with a fresh plan creates no duplicates. To try a design change, repeat the plan and sync commands with `filler-B.json`. Revision B uses six bolts per head mount and keeps all three revision A BOMs available. New parents point to the exact new child revision; they never silently use an older default.
+
+I do not let the connector guess a replacement for an unknown part number, convert units, or overwrite a quantity change carrying the same revision. It reports those problems and blocks the whole sync. A change after review invalidates the approval value. ERPNext selects the first submitted BOM as the item's default; later revisions keep that default until I change it deliberately in ERPNext.
+
+The [FreeCAD models and exports](examples/cad/) are included, so no CAD installation is needed to try the connector. To export my own `App::Part` assembly, I set its part numbers and revisions in FreeCAD and run the exporter in its Python console. [The CAD guide](docs/cad-connector.md) covers the exact properties, export commands, revision review, and recovery after a failed request. This is a file-based engineering-to-ERP connector; it does not provide a separate drawing approval or file-locking service.
+
 ## Stop or reset
 
 ```sh
@@ -76,6 +103,9 @@ Removing the volumes also removes the site. Keep `.env` if I want to reuse its p
 - `erp_demo/api.py` handles REST requests, session or API-token authentication, and paginated reads.
 - `erp_demo/workflow.py` sets up the workshop and posts real ERPNext documents. ERPNext enforces stock availability and maintains the inventory and accounting ledgers.
 - `erp_demo/__main__.py` provides the setup, manufacturing, recall, balance, and count commands.
+- `erp_demo/freecad_export.py` reads FreeCAD part containers and linked occurrences into a JSON parts list.
+- `erp_demo/cad.py` checks part identities, plans revisions, reports shared parts, and submits explicitly linked BOMs.
+- `cad/build_example.py` regenerates the included equipment models using real FreeCAD solid geometry.
 
 The recall covers one-stage production from raw ingredients to finished goods. It does not yet follow intermediate blends, shipments, or customer deliveries. The generated quality readings are examples; real release controls would need measured results and permissions for operators and reviewers.
 
@@ -87,4 +117,6 @@ python3 -m unittest discover -s tests -v
 ERP_INTEGRATION=1 python3 -m unittest discover -s tests -v
 ```
 
-The first command runs 15 local tests and skips the server test. GitHub Actions also starts a real ERPNext Docker stack and runs the integration test without a mock ERP. It verifies 3 completed work orders, 20 kg of finished product, all 12 ingredient lots, accepted and rejected inspections, exact ingredient consumption, exclusion of an unrelated lot, setup reruns, an insufficient-stock rejection, and a -0.25 kg reconciliation. Synthetic recall and balance reports are saved as the `compounding-evidence` CI artifact. Cleanup runs even if a check fails.
+The first command runs 38 local tests and skips two server tests. GitHub Actions runs all 40 tests against a real ERPNext Docker stack. The original manufacturing test verifies 3 completed work orders, 20 kg of finished product, all 12 ingredient lots, accepted and rejected inspections, exact ingredient consumption, exclusion of an unrelated lot, setup reruns, an insufficient-stock rejection, and a -0.25 kg reconciliation.
+
+The CAD integration test verifies two native equipment variants, six submitted BOMs across revisions A and B, exact child-revision links, repeat syncs, and blocked part and quantity mismatches. ERPNext's own expanded parts list contains 8 bolts for the two-head balm fixture in A and 12 in B. Another CI job installs FreeCAD, regenerates both models, reopens four files, checks solid geometry, and compares their exported lists. Synthetic ledger and CAD reports are saved as the `compounding-evidence` artifact. All containers and generated site data are removed even if a check fails.

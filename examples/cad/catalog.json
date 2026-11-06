@@ -1,0 +1,46 @@
+[
+  {
+    "part": "EQ-BRACKET",
+    "name": "Head bracket",
+    "uom": "Nos"
+  },
+  {
+    "part": "EQ-FILLER-BALM",
+    "name": "Balm filling fixture",
+    "uom": "Nos",
+    "template": "EQ-FILLER",
+    "configuration": "Balm"
+  },
+  {
+    "part": "EQ-FILLER-LOTION",
+    "name": "Lotion filling fixture",
+    "uom": "Nos",
+    "template": "EQ-FILLER",
+    "configuration": "Lotion"
+  },
+  {
+    "part": "EQ-FRAME",
+    "name": "Filler base",
+    "uom": "Nos"
+  },
+  {
+    "part": "EQ-HEAD",
+    "name": "Filling head mount",
+    "uom": "Nos"
+  },
+  {
+    "part": "EQ-M6-BOLT",
+    "name": "M6 mounting bolt",
+    "uom": "Nos"
+  },
+  {
+    "part": "EQ-NOZZLE-L",
+    "name": "Balm nozzle",
+    "uom": "Nos"
+  },
+  {
+    "part": "EQ-NOZZLE-S",
+    "name": "Lotion nozzle",
+    "uom": "Nos"
+  }
+]

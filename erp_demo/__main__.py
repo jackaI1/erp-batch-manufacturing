@@ -9,6 +9,7 @@ from urllib.error import URLError
 
 from .api import Client, ERPError
 from .workflow import seed, manufacture, recall, reconcile, batch_balance, trace
+from .cad import load_assembly, reusable_parts, setup_catalog, plan_sync, apply_sync
 
 
 def init(path=Path(".env")):
@@ -41,10 +42,21 @@ def main():
     count = sub.add_parser("count", help="Post a raw lot physical count in Raw Materials")
     count.add_argument("batch")
     count.add_argument("--kg", type=float, required=True)
+    reuse = sub.add_parser("cad-reuse", help="Report shared equipment parts without an ERP connection")
+    reuse.add_argument("assembly", type=Path)
+    setup = sub.add_parser("cad-setup", help="Provision explicitly approved equipment catalog on a seeded demo")
+    setup.add_argument("catalog", type=Path)
+    for command in ("cad-plan", "cad-sync"):
+        cad = sub.add_parser(command, help="Review or apply FreeCAD BOM revisions through REST")
+        cad.add_argument("assembly", type=Path)
+        if command == "cad-sync":
+            cad.add_argument("--approve", required=True, help="Exact approval hash from a fresh cad-plan")
     args = parser.parse_args()
     try:
         if args.command == "init":
             result = init()
+        elif args.command == "cad-reuse":
+            result = reusable_parts(load_assembly(args.assembly))
         elif args.command == "wait":
             deadline = time.monotonic() + 900
             while True:
@@ -61,6 +73,12 @@ def main():
             api = Client.from_env()
             if args.command == "seed":
                 result = seed(api)
+            elif args.command == "cad-setup":
+                result = setup_catalog(api, args.catalog)
+            elif args.command in ("cad-plan", "cad-sync"):
+                model = load_assembly(args.assembly)
+                result = (plan_sync(api, model) if args.command == "cad-plan"
+                          else apply_sync(api, model, args.approve))
             elif args.command == "make":
                 result = manufacture(api, args.formula, args.kg, args.lot, args.run, ph=args.ph, appearance=args.appearance)
             elif args.command == "recall":
@@ -72,6 +90,8 @@ def main():
             else:
                 result = reconcile(api, args.batch, args.kg)
         print(json.dumps(result, indent=2))
+        if args.command == "cad-plan" and result["issues"]:
+            parser.exit(2, "Review required: no BOMs were written\n")
     except (ERPError, ValueError, RuntimeError, OSError) as exc:
         parser.exit(1, f"{exc}\n")
 

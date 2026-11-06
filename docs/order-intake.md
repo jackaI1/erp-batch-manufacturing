@@ -20,8 +20,9 @@ cat artifacts/intake-parallel-run.json
 The eight labelled orders include a two-page PDF, an email with a PDF attachment,
 an unknown product, a changed price, a weak field, an invented quantity and an
 omitted line. `examples/intake/labels.json` contains the hand-keyed answers.
-`recordings/` contains **hand-authored synthetic protocol fixtures**, not captured
-Anthropic or Ollama outputs. The replay is a repeatable check of the review
+`recordings/` includes **hand-authored synthetic protocol fixtures** for the
+eight-order replay. `ollama-invalid-flat.json` is an actual failed tool response
+from Linux CI, retained as a schema-rejection regression. The replay is a repeatable check of the review
 pipeline. Its accuracy and timings do not measure a real model or a human's
 productivity. The report counts missing and extra fields, all raw fields, fields
 on accepted orders, held orders, decision accuracy and seconds per order.

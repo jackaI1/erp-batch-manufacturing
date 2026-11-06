@@ -141,17 +141,32 @@ Removing the volumes also removes the site. Keep `.env` if I want to reuse its p
 - `erp_demo/freecad_export.py` reads FreeCAD part containers and linked occurrences into a JSON parts list.
 - `erp_demo/cad.py` checks part identities, plans revisions, reports shared parts, and submits explicitly linked BOMs.
 - `cad/build_example.py` regenerates the included equipment models using real FreeCAD solid geometry.
+- `erp_demo/intake.py`, `models.py` and `mcp_server.py` connect quoted order fields, model tool calls and reviewed draft creation.
+- `erp_demo/warehouse.py` posts putaway, picking and transfers, then reads the stock ledger for its CSV.
+- `erp_demo/business_central.py` implements the separately tested Microsoft order interface.
+- `maintenance/` stores fleet records through openMAINT and checks plans, migration, costs and condition readings.
 
 The recall covers one-stage production from raw ingredients to finished goods. It does not yet follow intermediate blends, shipments, or customer deliveries. The generated quality readings are examples; real release controls would need measured results and permissions for operators and reviewers.
 
 ## Checks
 
 ```sh
-.venv/bin/python -m unittest discover -s tests -v
+.venv/bin/python -m pytest tests -q
 # On a freshly started, empty demo site with .env loaded:
-ERP_INTEGRATION=1 .venv/bin/python -m unittest discover -s tests -v
+ERP_INTEGRATION=1 .venv/bin/python -m pytest tests -q
 ```
 
-Install `requirements.txt` first. The local suite includes source-grounding, a real MCP client session, OData HTTP contracts, warehouse calculations and maintenance rules. Opt-in ERPNext, openMAINT and Ollama checks run against real systems in separate Linux CI jobs. The original CAD regression checks also remain in CI. The original manufacturing test verifies 3 completed work orders, 20 kg of finished product, all 12 ingredient lots, accepted and rejected inspections, exact ingredient consumption, exclusion of an unrelated lot, setup reruns, an insufficient-stock rejection, and a -0.25 kg reconciliation.
+Install `requirements.txt` first. My local run passes 101 tests and 62 subtests, with six real-service tests skipped. The local suite includes source-grounding, a real MCP client session, OData HTTP contracts, warehouse calculations and maintenance rules. Opt-in ERPNext, openMAINT and Ollama checks run against real systems in separate Linux CI jobs. The original CAD regression checks also remain in CI. The original manufacturing test verifies 3 completed work orders, 20 kg of finished product, all 12 ingredient lots, accepted and rejected inspections, exact ingredient consumption, exclusion of an unrelated lot, setup reruns, an insufficient-stock rejection, and a -0.25 kg reconciliation.
 
 The CAD integration test verifies two native equipment variants, six submitted BOMs across revisions A and B, exact child-revision links, repeat syncs, and blocked part and quantity mismatches. ERPNext's own expanded parts list contains 8 bolts for the two-head balm fixture in A and 12 in B. Another CI job installs FreeCAD, regenerates both models, reopens four files, checks solid geometry, and compares their exported lists. Synthetic ledger, order and warehouse reports are saved as the `compounding-evidence` artifact. Separate jobs save live Ollama results and fleet maintenance records with real UI screenshots. All containers and generated site data are removed even if a check fails.
+
+The [saved ERP run](docs/reports/erp-operations.json) includes a real draft sales
+order and the warehouse balances. The [fleet report](docs/reports/fleet-maintenance.json)
+contains eight assets, six plans and three due work-order cards read back from
+openMAINT. All 18 fleet tests passed against that running system. The
+[public vibration report](docs/reports/vibration.json) distinguishes the two
+labelled bearing recordings. My [live order comparison](docs/reports/intake-ollama.json)
+matched all 57 hand-keyed field values across eight synthetic orders, averaging
+20.39 seconds per order; three orders were held, including one with wrong page
+references. These small examples do not establish production accuracy or operator
+productivity.

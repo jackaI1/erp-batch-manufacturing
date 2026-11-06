@@ -33,6 +33,13 @@ class ConditionTests(unittest.TestCase):
         self.assertGreater(result['iron_ppm_per_day'], 0)
         self.assertEqual(result['temperature_rise_c'], 60)
 
+    def test_numeric_strings_and_cold_ambient_are_normalized(self):
+        from maintenance.condition import trends
+        result = trends([
+            dict(date='2026-01-01', bearing_c='30', ambient_c='-10', iron_ppm='10', viscosity_cst='100'),
+            dict(date='2026-02-01', bearing_c='35', ambient_c='-15', iron_ppm='20', viscosity_cst='105')])
+        self.assertEqual(result['temperature_rise_c'], 50)
+
     def test_trends_require_chronology_and_finite_data(self):
         from maintenance.condition import trends
         with self.assertRaises(ValueError):

@@ -23,6 +23,8 @@ class ClientTests(unittest.TestCase):
             def do_POST(self):
                 payload = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
                 calls.append(('login', payload['scope']))
+                if 'returnId=true' not in self.path:
+                    raise AssertionError('Session must request its real ID')
                 self.respond({'_id': 'test-session'})
             def do_GET(self):
                 self.assert_auth()

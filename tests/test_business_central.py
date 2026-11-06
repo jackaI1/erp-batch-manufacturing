@@ -179,6 +179,12 @@ class BusinessCentralTests(unittest.TestCase):
             self.assertEqual(failure.exception.status, 302)
             self.assertEqual(len(state['requests']), 1)
 
+    def test_whitespace_wildcard_etag_never_writes(self):
+        with contract_server() as (base, state):
+            with self.assertRaises(ValueError):
+                self.adapter(base).update_order(ORDER, {'externalDocumentNumber':'PO'}, ' * ')
+            self.assertEqual(state['requests'], [])
+
     def test_transport_and_identifiers_are_validated(self):
         from erp_demo.business_central import BusinessCentral
         for base in ['http://remote.example/api/v2.0', 'https://user:password@example.com/api/v2.0', 'https://example.com/odata']:

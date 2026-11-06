@@ -32,10 +32,10 @@ def trends(readings):
     dates = [date.fromisoformat(r['date']) for r in readings]
     if any(b <= a for a, b in zip(dates, dates[1:])):
         raise ValueError('Reading dates must increase')
+    normalized = []
     for row in readings:
-        for key in ('bearing_c', 'ambient_c', 'iron_ppm', 'viscosity_cst'):
-            number(row.get(key), key)
-    first, last = readings[0], readings[-1]
+        normalized.append({key: number(row.get(key), key, -273.15 if key.endswith('_c') else 0) for key in ('bearing_c', 'ambient_c', 'iron_ppm', 'viscosity_cst')})
+    first, last = normalized[0], normalized[-1]
     rise = last['bearing_c'] - last['ambient_c']
     viscosity_change = (last['viscosity_cst'] / first['viscosity_cst'] - 1) if first['viscosity_cst'] else None
     return dict(temperature_rise_c=rise, thermal_alert=rise > 40, iron_ppm_per_day=(last['iron_ppm'] - first['iron_ppm']) / (dates[-1] - dates[0]).days, oil_alert=last['iron_ppm'] > 50 or viscosity_change is None or abs(viscosity_change) > 0.2, viscosity_fraction_change=viscosity_change, limitation='Illustrative thresholds on synthetic thermal/oil readings; no remaining-life or vessel-safety prediction')

@@ -117,3 +117,14 @@ The example delivery date is a documented placeholder of today plus 14 days.
 API references: [Anthropic tool use](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview),
 [Ollama chat](https://docs.ollama.com/api/chat), and
 [Frappe REST](https://docs.frappe.io/framework/user/en/api/rest).
+
+## Recorded regression result
+
+The eight-order replay on 6 November 2026 compared 57 fields. It matched 53/57
+raw fields (92.98%), held 5/8 orders (62.5%), and matched all 24 fields on the
+three accepted orders. All eight ready/review decisions matched their labels.
+The intentionally invented quantity and omitted line account for the four
+incorrect or missing raw fields. A small local run averaged about 0.08 ms per
+order for replay plus review. That is Python pipeline time, not inference time.
+Use the live Actions report for model accuracy and seconds per order; no human
+keying times were measured and I make no speedup claim.

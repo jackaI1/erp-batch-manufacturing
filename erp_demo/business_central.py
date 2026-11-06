@@ -168,7 +168,7 @@ class BusinessCentral:
             raise PartialOrderError(order_id) from error
 
     def update_order(self, order_id, fields, etag):
-        if not isinstance(etag, str) or not etag.strip() or etag == '*' or any(c in etag for c in '\r\n'):
+        if not isinstance(etag, str) or not etag.strip() or etag.strip() == '*' or any(c in etag for c in '\r\n'):
             raise ValueError('Supply the exact ETag from get_order; wildcard writes are disabled')
         if not isinstance(fields, dict) or not fields:
             raise ValueError('Provide the changed order fields')

@@ -35,13 +35,13 @@ def analyze_public():
         row.update(source=SOURCE + file, source_sha256=hashlib.sha256(raw).hexdigest(), source_bytes=len(raw), label=label, rpm=rpm)
         result[label] = row
         del raw, data, samples
-    result['comparison'] = dict(fault_fraction_greater=result['inner_race_fault']['bearing_band_fraction'] > result['normal']['bearing_band_fraction'], limitation='Two labelled bench recordings only, not a validated classifier or remaining-life prediction.')
+    result['comparison'] = dict(fault_fraction_greater=result['inner_race_fault']['bearing_band_fraction'] > result['normal']['bearing_band_fraction'], labelled_cases_match=result['inner_race_fault']['screening_flag'] and not result['normal']['screening_flag'], limitation='Two labelled bench recordings only, not a validated classifier or remaining-life prediction.')
     result['synthetic_thermal_oil'] = trends([
         dict(date='2026-09-01', bearing_c=52, ambient_c=22, iron_ppm=12, viscosity_cst=100),
         dict(date='2026-10-01', bearing_c=61, ambient_c=21, iron_ppm=28, viscosity_cst=108),
         dict(date='2026-11-01', bearing_c=83, ambient_c=20, iron_ppm=65, viscosity_cst=125)])
-    if not result['comparison']['fault_fraction_greater']:
-        raise AssertionError('Reference fault has no stronger target envelope signature; inspect the analysis')
+    if not result['comparison']['fault_fraction_greater'] or not result['comparison']['labelled_cases_match']:
+        raise AssertionError('Reference labels disagree with envelope screening; inspect the analysis')
     return result
 
 

@@ -34,6 +34,16 @@ class FleetTests(unittest.TestCase):
         self.assertFalse(result['ok'])
         self.assertTrue(reconcile(self.assets, self.assets)['ok'])
 
+    def test_daily_usage_drift_is_not_reconciled_as_equal(self):
+        source = [dict(self.assets[0], DailyHours=8)]
+        result = reconcile(source, [dict(source[0], DailyHours=24)])
+        self.assertFalse(result['ok'])
+        self.assertIn('DailyHours', result['mismatched'][0]['fields'])
+
+    def test_negative_daily_usage_is_rejected_before_migration(self):
+        with self.assertRaises(ValueError):
+            validate_asset(dict(self.assets[1], DailyHours=-1), self.assets)
+
     def test_forecast_groups_costs_and_surveys_by_vessel(self):
         surveys = [dict(Code='S1', AssetCode='TUG-01', Task='Class survey', FailureCode='SURVEY', NextDate='2026-11-10', EstimatedCost=500, Category='class')]
         result = forecast(self.assets, self.plans + surveys, date(2026, 11, 1), 365)

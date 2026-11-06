@@ -45,7 +45,7 @@ These are learning examples, not a vessel's approved maintenance program.
 
 ## Start the workshop
 
-I use Docker with Compose, which packages ERPNext and its database together, and Python 3.10 or newer. Allow about 6 GB of Docker memory, 12 GB of disk space, and 5 to 15 minutes for the first start. The ERPNext image runs as `linux/amd64`; Apple Silicon uses Docker's emulation.
+I use Docker with Compose, which packages ERPNext and its database together, and Python 3.11 or newer. Allow about 6 GB of Docker memory, 12 GB of disk space, and 5 to 15 minutes for the first start. The ERPNext image runs as `linux/amd64`; Apple Silicon uses Docker's emulation.
 
 ```sh
 git clone https://github.com/jackaI1/erp-batch-manufacturing.git

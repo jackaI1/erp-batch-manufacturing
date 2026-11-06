@@ -21,6 +21,7 @@ def validate_asset(asset, assets):
         raise ValueError('Asset requires Code and vessel/system/component Kind')
     number(asset.get('RunningHours'), 'RunningHours')
     number(asset.get('ReplacementCost'), 'ReplacementCost')
+    number(asset.get('DailyHours', 0), 'DailyHours')
     index = {row['Code']: row for row in assets}
     if asset['Kind'] != 'vessel':
         parent = index.get(asset.get('ParentCode'))
@@ -93,13 +94,13 @@ def audit(assets, plans, work_orders, today):
 
 def reconcile(source, destination):
     """Compare business fields, retaining duplicate detection and unexpected rows."""
-    fields = ('Code', 'Kind', 'Vessel', 'ParentCode', 'Serial', 'RunningHours', 'ReplacementCost')
+    fields = ('Code', 'Kind', 'Vessel', 'ParentCode', 'Serial', 'RunningHours', 'DailyHours', 'ReplacementCost')
     a = {r['Code']: r for r in source}
     b = {r['Code']: r for r in destination}
     duplicates = sorted(k for k, n in Counter(r['Code'] for r in destination).items() if n > 1)
     mismatched = []
     for code in sorted(a.keys() & b.keys()):
-        changes = {f: {'source': a[code].get(f), 'destination': b[code].get(f)} for f in fields if str(a[code].get(f) or '') != str(b[code].get(f) or '') and not (f in ('RunningHours', 'ReplacementCost') and float(a[code].get(f, 0)) == float(b[code].get(f, 0)))}
+        changes = {f: {'source': a[code].get(f), 'destination': b[code].get(f)} for f in fields if str(a[code].get(f) or '') != str(b[code].get(f) or '') and not (f in ('RunningHours', 'DailyHours', 'ReplacementCost') and float(a[code].get(f, 0)) == float(b[code].get(f, 0)))}
         if changes:
             mismatched.append(dict(Code=code, fields=changes))
     missing, unexpected = sorted(a.keys() - b.keys()), sorted(b.keys() - a.keys())

@@ -96,6 +96,12 @@ def review(data, pages, erp):
         else:
             issues.append(f'{line.item.value}: unknown item or ambiguous/missing ERP price')
     issues += review_order(order, pages, {extraction.customer.value} if customer else set(), catalog)
+    # Supported headers are exact field values, not arbitrary substrings of IDs.
+    for key, header in [('customer', 'Customer'), ('purchase_order', 'PO'), ('currency', 'Currency')]:
+        candidates = {match.strip() for text in pages.values()
+                      for match in re.findall(r'^' + header + r':\s*([^\n\r]+)', text, re.MULTILINE)}
+        if candidates != {getattr(extraction, key).value}:
+            issues.append(key + ': source header mismatch or ambiguity; manual review required')
     currency = extraction.currency
     if currency.text not in pages.get(currency.page, '') or currency.value not in currency.text or currency.confidence < .9:
         issues.append('currency: unverifiable source or low confidence')
@@ -109,7 +115,8 @@ def review(data, pages, erp):
                 issues.append(f'lines[{i}].{name}: numeric token not grounded')
     # Independent completeness check for the supported synthetic pipe-table format.
     source_rows = [line.strip() for text in pages.values() for line in text.splitlines()
-                   if re.fullmatch(r'[A-Z][A-Z0-9-]+\s*\|\s*[^|]+\s*\|\s*[^|]+', line.strip())]
+                   if '|' in line and [x.strip().lower() for x in line.split('|')]
+                   != ['item', 'quantity', 'unit price']]
     if not source_rows or len(source_rows) != len(extraction.lines):
         issues.append('source line count cannot be reconciled; manual review required')
     else:

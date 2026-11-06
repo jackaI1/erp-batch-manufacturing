@@ -116,3 +116,28 @@ class IntakeTests(unittest.TestCase):
         self.assertEqual(adapter.extract(load_document(ROOT/'examples/intake/clean.eml')).customer.value, 'SYN-CUSTOMER')
         with self.assertRaisesRegex(ValueError, 'source'):
             adapter.extract({1:'different source'})
+
+class OmissionAndIdentityRegressionTests(unittest.TestCase):
+    def test_unrecognized_pipe_rows_block_omitted_unknown_item(self):
+        pages = {1: 'Customer: SYN-CUSTOMER\nPO: SYN-PO-1\nCurrency: CAD\nFG-LOTION | 2 | 12.50\nFG_OIL | 5 | 1.00'}
+        erp = Catalog()
+        self.assertEqual(draft_order(order(),pages,erp)['status'],'review')
+        self.assertEqual(erp.writes,[])
+
+    def test_customer_and_po_substrings_do_not_identify_source_headers(self):
+        for header,value in [('Customer','NOT-SYN-CUSTOMER'),('PO','NOT-SYN-PO-1')]:
+            pages = {1:'Customer: SYN-CUSTOMER\nPO: SYN-PO-1\nCurrency: CAD\nFG-LOTION | 2 | 12.50'}
+            original = 'SYN-CUSTOMER' if header=='Customer' else 'SYN-PO-1'
+            pages[1] = pages[1].replace(header+': '+original,header+': '+value)
+            erp = Catalog()
+            self.assertEqual(draft_order(order(),pages,erp)['status'],'review')
+            self.assertEqual(erp.writes,[])
+
+class NumericRangeRegressionTests(unittest.TestCase):
+    def test_finite_decimal_that_overflows_float_is_held(self):
+        data = order()
+        data['lines'][0]['quantity'] = field('1e9999')
+        pages = {1:'Customer: SYN-CUSTOMER\nPO: SYN-PO-1\nCurrency: CAD\nFG-LOTION | 1e9999 | 12.50'}
+        erp = Catalog()
+        self.assertEqual(draft_order(data,pages,erp)['status'],'review')
+        self.assertEqual(erp.writes,[])

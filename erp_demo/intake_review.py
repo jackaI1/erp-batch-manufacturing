@@ -54,13 +54,13 @@ def review_order(order, pages, customers, items, confidence_threshold=0.9):
             issues.append(path + ".item: unknown item")
         try:
             q = Decimal(str(qty))
-            if not q.is_finite() or q <= 0:
+            if not q.is_finite() or q <= 0 or q > Decimal('1e9'):
                 raise ValueError
         except (InvalidOperation, ValueError):
             issues.append(path + ".quantity: invalid quantity")
         try:
             p = Decimal(str(price))
-            if not p.is_finite() or p < 0:
+            if not p.is_finite() or p < 0 or p > Decimal('1e9'):
                 raise ValueError
             if isinstance(item, str) and item in items and p != Decimal(str(items[item])):
                 issues.append(path + ".unit_price: price conflict")

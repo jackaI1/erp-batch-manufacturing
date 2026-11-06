@@ -30,7 +30,7 @@ class Client:
         self.base = base.rstrip('/') + '/services/rest/v3'
         self.opener = build_opener(NoRedirect())
         self.session = None
-        response = self.request('POST', 'sessions', dict(username=username, password=password, scope='service'))
+        response = self.request('POST', 'sessions', dict(username=username, password=password, scope='service'), params={'scope': 'service', 'returnId': 'true'})
         self.session = response['data']['_id']
 
     @classmethod

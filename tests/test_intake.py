@@ -141,3 +141,10 @@ class NumericRangeRegressionTests(unittest.TestCase):
         erp = Catalog()
         self.assertEqual(draft_order(data,pages,erp)['status'],'review')
         self.assertEqual(erp.writes,[])
+
+class ModelSchemaRegressionTests(unittest.TestCase):
+    def test_tool_schema_expands_references_for_local_templates(self):
+        payload = ModelAdapter('ollama',model='synthetic').payload({1:'synthetic'})
+        schema = payload['tools'][0]['function']['parameters']
+        self.assertEqual(schema['properties']['customer'].get('type'),'object')
+        self.assertNotIn('$ref',json.dumps(schema))

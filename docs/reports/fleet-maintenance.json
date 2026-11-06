@@ -1,0 +1,389 @@
+{
+  "label": "Synthetic fleet, frozen as-of 2026-11-01; illustrative survey dates",
+  "migration": {
+    "ok": true,
+    "source_count": 8,
+    "destination_count": 8,
+    "missing": [],
+    "unexpected": [],
+    "mismatched": [],
+    "duplicates": [],
+    "created": 0,
+    "policy": "Existing cards are never overwritten; review mismatches and partial writes before retrying."
+  },
+  "assets": [
+    {
+      "_id": 434406,
+      "_type": "FleetAsset",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:45.668355Z",
+      "Code": "TUG-01",
+      "Description": "Synthetic fleet: TUG-01",
+      "Notes": null,
+      "Kind": "vessel",
+      "Vessel": "TUG-01",
+      "ParentCode": null,
+      "Serial": "SYN-TUG-001",
+      "RunningHours": 1200,
+      "DailyHours": 4,
+      "ReplacementCost": 400000
+    },
+    {
+      "_id": 434409,
+      "_type": "FleetAsset",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:45.706149Z",
+      "Code": "TUG-PROP",
+      "Description": "Synthetic fleet: TUG-PROP",
+      "Notes": null,
+      "Kind": "system",
+      "Vessel": "TUG-01",
+      "ParentCode": "TUG-01",
+      "Serial": "SYN-PROP-001",
+      "RunningHours": 1200,
+      "DailyHours": 4,
+      "ReplacementCost": 50000
+    },
+    {
+      "_id": 434412,
+      "_type": "FleetAsset",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:45.730791Z",
+      "Code": "TUG-ENGINE",
+      "Description": "Synthetic fleet: TUG-ENGINE",
+      "Notes": null,
+      "Kind": "component",
+      "Vessel": "TUG-01",
+      "ParentCode": "TUG-PROP",
+      "Serial": "SYN-ENGINE-001",
+      "RunningHours": 1200,
+      "DailyHours": 4,
+      "ReplacementCost": 25000
+    },
+    {
+      "_id": 434415,
+      "_type": "FleetAsset",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:45.756537Z",
+      "Code": "TUG-PUMP",
+      "Description": "Synthetic fleet: TUG-PUMP",
+      "Notes": null,
+      "Kind": "component",
+      "Vessel": "TUG-01",
+      "ParentCode": "TUG-PROP",
+      "Serial": "SYN-PUMP-001",
+      "RunningHours": 1200,
+      "DailyHours": 4,
+      "ReplacementCost": 2000
+    },
+    {
+      "_id": 434418,
+      "_type": "FleetAsset",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:45.779749Z",
+      "Code": "BARGE-01",
+      "Description": "Synthetic fleet: BARGE-01",
+      "Notes": null,
+      "Kind": "vessel",
+      "Vessel": "BARGE-01",
+      "ParentCode": null,
+      "Serial": "SYN-BARGE-001",
+      "RunningHours": 200,
+      "DailyHours": 1,
+      "ReplacementCost": 180000
+    },
+    {
+      "_id": 434421,
+      "_type": "FleetAsset",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:45.803638Z",
+      "Code": "BARGE-DECK",
+      "Description": "Synthetic fleet: BARGE-DECK",
+      "Notes": null,
+      "Kind": "system",
+      "Vessel": "BARGE-01",
+      "ParentCode": "BARGE-01",
+      "Serial": "SYN-DECK-001",
+      "RunningHours": 200,
+      "DailyHours": 1,
+      "ReplacementCost": 10000
+    },
+    {
+      "_id": 434424,
+      "_type": "FleetAsset",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:45.830663Z",
+      "Code": "BARGE-WINCH",
+      "Description": "Synthetic fleet: BARGE-WINCH",
+      "Notes": null,
+      "Kind": "component",
+      "Vessel": "BARGE-01",
+      "ParentCode": "BARGE-DECK",
+      "Serial": "SYN-WINCH-001",
+      "RunningHours": 200,
+      "DailyHours": 1,
+      "ReplacementCost": 5000
+    },
+    {
+      "_id": 434427,
+      "_type": "FleetAsset",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:45.860446Z",
+      "Code": "BARGE-SPARE",
+      "Description": "Synthetic fleet: BARGE-SPARE",
+      "Notes": null,
+      "Kind": "component",
+      "Vessel": "BARGE-01",
+      "ParentCode": "BARGE-DECK",
+      "Serial": "SYN-SPARE-001",
+      "RunningHours": 0,
+      "DailyHours": 0,
+      "ReplacementCost": 1000
+    }
+  ],
+  "plans": [
+    {
+      "_id": 434433,
+      "_type": "FleetPlan",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:45.928118Z",
+      "Code": "ENGINE-OIL",
+      "Description": null,
+      "Notes": null,
+      "AssetCode": "TUG-ENGINE",
+      "Task": "Change engine oil",
+      "Category": "preventive",
+      "FailureCode": "LUBE",
+      "IntervalHours": 250,
+      "LastHours": 900,
+      "NextDate": null,
+      "EstimatedCost": 180
+    },
+    {
+      "_id": 434436,
+      "_type": "FleetPlan",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:45.952928Z",
+      "Code": "PUMP-BEARING",
+      "Description": null,
+      "Notes": null,
+      "AssetCode": "TUG-PUMP",
+      "Task": "Inspect bearing vibration",
+      "Category": "condition",
+      "FailureCode": "BEARING",
+      "IntervalHours": 500,
+      "LastHours": 500,
+      "NextDate": null,
+      "EstimatedCost": 80
+    },
+    {
+      "_id": 434439,
+      "_type": "FleetPlan",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:45.976497Z",
+      "Code": "WINCH-GREASE",
+      "Description": null,
+      "Notes": null,
+      "AssetCode": "BARGE-WINCH",
+      "Task": "Grease winch",
+      "Category": "preventive",
+      "FailureCode": "LUBE",
+      "IntervalHours": 250,
+      "LastHours": 0,
+      "NextDate": "2026-11-15",
+      "EstimatedCost": 50
+    },
+    {
+      "_id": 434442,
+      "_type": "FleetPlan",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:45.99915Z",
+      "Code": "TUG-CLASS",
+      "Description": null,
+      "Notes": null,
+      "AssetCode": "TUG-01",
+      "Task": "Illustrative class survey",
+      "Category": "class",
+      "FailureCode": "SURVEY",
+      "IntervalHours": 0,
+      "LastHours": 0,
+      "NextDate": "2026-10-20",
+      "EstimatedCost": 5000
+    },
+    {
+      "_id": 434445,
+      "_type": "FleetPlan",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:46.02154Z",
+      "Code": "BARGE-REG",
+      "Description": null,
+      "Notes": null,
+      "AssetCode": "BARGE-01",
+      "Task": "Illustrative regulatory survey",
+      "Category": "regulatory",
+      "FailureCode": "SURVEY",
+      "IntervalHours": 0,
+      "LastHours": 0,
+      "NextDate": "2026-12-10",
+      "EstimatedCost": 2500
+    },
+    {
+      "_id": 434448,
+      "_type": "FleetPlan",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:46.066797Z",
+      "Code": "DECK-ANNUAL",
+      "Description": null,
+      "Notes": null,
+      "AssetCode": "BARGE-DECK",
+      "Task": "Inspect deck",
+      "Category": "preventive",
+      "FailureCode": "CORROSION",
+      "IntervalHours": 0,
+      "LastHours": 0,
+      "NextDate": "2027-01-15",
+      "EstimatedCost": 120
+    }
+  ],
+  "work_orders": [
+    {
+      "_id": 434455,
+      "_type": "FleetWorkOrder",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:46.137158Z",
+      "Code": "ENGINE-OIL-900-hours",
+      "Description": "Synthetic work: Change engine oil",
+      "Notes": null,
+      "AssetCode": "TUG-ENGINE",
+      "PlanCode": "ENGINE-OIL",
+      "Task": "Change engine oil",
+      "FailureCode": "LUBE",
+      "WorkStatus": "open",
+      "DueDate": "2026-11-01",
+      "Triggers": "hours",
+      "EstimatedCost": 180
+    },
+    {
+      "_id": 434458,
+      "_type": "FleetWorkOrder",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:46.164671Z",
+      "Code": "PUMP-BEARING-500-hours",
+      "Description": "Synthetic work: Inspect bearing vibration",
+      "Notes": null,
+      "AssetCode": "TUG-PUMP",
+      "PlanCode": "PUMP-BEARING",
+      "Task": "Inspect bearing vibration",
+      "FailureCode": "BEARING",
+      "WorkStatus": "open",
+      "DueDate": "2026-11-01",
+      "Triggers": "hours",
+      "EstimatedCost": 80
+    },
+    {
+      "_id": 434461,
+      "_type": "FleetWorkOrder",
+      "_user": "admin",
+      "__user_description": "Administrator",
+      "_beginDate": "2026-11-06T23:25:46.188414Z",
+      "Code": "TUG-CLASS-0-2026-10-20",
+      "Description": "Synthetic work: Illustrative class survey",
+      "Notes": null,
+      "AssetCode": "TUG-01",
+      "PlanCode": "TUG-CLASS",
+      "Task": "Illustrative class survey",
+      "FailureCode": "SURVEY",
+      "WorkStatus": "open",
+      "DueDate": "2026-10-20",
+      "Triggers": "calendar",
+      "EstimatedCost": 5000
+    }
+  ],
+  "audit": [
+    {
+      "kind": "no_plan",
+      "asset": "TUG-PROP",
+      "detail": "No explicit maintenance plan"
+    },
+    {
+      "kind": "no_plan",
+      "asset": "BARGE-SPARE",
+      "detail": "No explicit maintenance plan"
+    },
+    {
+      "kind": "overdue",
+      "asset": "TUG-ENGINE",
+      "detail": "ENGINE-OIL",
+      "triggers": [
+        "hours"
+      ]
+    },
+    {
+      "kind": "overdue",
+      "asset": "TUG-PUMP",
+      "detail": "PUMP-BEARING",
+      "triggers": [
+        "hours"
+      ]
+    },
+    {
+      "kind": "overdue",
+      "asset": "TUG-01",
+      "detail": "TUG-CLASS",
+      "triggers": [
+        "calendar"
+      ]
+    }
+  ],
+  "forecast": [
+    {
+      "vessel": "BARGE-01",
+      "horizon_days": 365,
+      "replacement_cost": 196000.0,
+      "forecast_maintenance_cost": 2720.0,
+      "surveys": [
+        {
+          "plan": "BARGE-REG",
+          "due": "2026-12-10",
+          "category": "regulatory",
+          "overdue": false
+        }
+      ]
+    },
+    {
+      "vessel": "TUG-01",
+      "horizon_days": 365,
+      "replacement_cost": 477000.0,
+      "forecast_maintenance_cost": 6580.0,
+      "surveys": [
+        {
+          "plan": "TUG-CLASS",
+          "due": "2026-10-20",
+          "category": "class",
+          "overdue": true
+        }
+      ]
+    }
+  ],
+  "evidence": {
+    "run": "https://github.com/jackaI1/erp-batch-manufacturing/actions/runs/42311515896",
+    "commit": "8418fde",
+    "note": "Real API and analysis passed; screenshot capture failed in this run and is repaired separately."
+  }
+}

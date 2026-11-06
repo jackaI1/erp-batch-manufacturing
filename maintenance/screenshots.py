@@ -1,8 +1,16 @@
 """Capture the real openMAINT UI in headless CI, closing every owned page."""
 import argparse
 import os
+import json
 from pathlib import Path
 from playwright.sync_api import sync_playwright
+
+
+def diagnostic(page, output, phase):
+    # Never collect field values, cookies, headers or the full DOM.
+    snapshot = dict(phase=phase, title=page.title(), text=page.locator('body').inner_text()[:4000], inputs=page.locator('input').evaluate_all("nodes => nodes.slice(0, 20).map(node => ({id: node.id, name: node.name, type: node.type, testid: node.getAttribute('data-testid')}))"))
+    (output / ('ui-' + phase + '.json')).write_text(json.dumps(snapshot, indent=2) + '\n')
+    print(json.dumps(snapshot))
 
 
 def main():
@@ -18,12 +26,14 @@ def main():
         page = context.new_page()
         try:
             page.goto(base + '/ui/', wait_until='networkidle', timeout=120000)
-            user = page.locator('input[name="username"]')
+            page.screenshot(path=str(output / '00-ui-initial.png'))
+            diagnostic(page, output, 'initial')
+            user = page.get_by_test_id('login-inputusername').locator('input')
             user.wait_for(timeout=60000)
             page.screenshot(path=str(output / '01-login.png'))
             user.fill(os.getenv('MAINT_USER', 'admin'))
-            page.locator('input[name="password"]').fill(os.getenv('MAINT_PASSWORD', 'admin'))
-            page.get_by_text('Login', exact=True).last.click()
+            page.get_by_test_id('login-inputpassword').locator('input[type="password"]').fill(os.getenv('MAINT_PASSWORD', 'admin'))
+            page.get_by_test_id('login-btnlogin').click()
             page.wait_for_timeout(3000)
             page.goto(base + '/ui/#classes/FleetAsset/cards', wait_until='networkidle', timeout=120000)
             page.get_by_text('TUG-01', exact=True).first.wait_for(timeout=60000)
@@ -31,6 +41,10 @@ def main():
             page.goto(base + '/ui/#classes/FleetWorkOrder/cards', wait_until='networkidle', timeout=120000)
             page.get_by_text('ENGINE-OIL', exact=False).first.wait_for(timeout=60000)
             page.screenshot(path=str(output / '03-work-orders.png'))
+        except Exception:
+            diagnostic(page, output, 'failure')
+            page.screenshot(path=str(output / '00-ui-failure.png'))
+            raise
         finally:
             page.close()
             context.close()

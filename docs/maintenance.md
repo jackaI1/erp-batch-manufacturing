@@ -46,7 +46,7 @@ The script compares current running hours with **last service hours + service in
 
 ## 4. Review the audit and migration
 
-Read `artifacts/maintenance/fleet-report.json`. It contains:
+Read `artifacts/maintenance/fleet-report.json`, or the [committed real API report](reports/fleet-maintenance.json). It contains:
 
 - the reconciliation between the old-format CSV and records read back from openMAINT;
 - the assets, service plans and API-created work orders;
@@ -68,6 +68,8 @@ python -m maintenance.public_vibration --output artifacts/maintenance/vibration.
 This downloads two small public laboratory recordings from the [Case Western Reserve University Bearing Data Center](https://engineering.case.edu/bearingdatacenter/download-data-file). File `97.mat` is normal and `105.mat` has a deliberately introduced inner-race fault. The normal drive-end channel was collected at 48 kHz, so it is reduced to 12 kHz with an anti-alias filter before comparison. Only two seconds from each file are analysed; downloaded files are not kept.
 
 An FFT separates a vibration signal into frequencies. Envelope analysis measures repeated impacts after filtering around a higher-frequency bearing response. The script looks near the inner-race frequency calculated from motor speed and the university's [published bearing factor of 5.4152](https://engineering.case.edu/bearingdatacenter/bearing-information). It compares the proportion of envelope energy in that frequency band between the labelled normal and fault recordings, and saves each source URL and SHA-256 checksum.
+
+The [committed vibration report](reports/vibration.json) records a normal bearing-band energy fraction of 0.00364 and a fault fraction of 0.37496, with the fault envelope peak at 161.5 Hz. These results are from the actual public recordings, not generated waveforms.
 
 The same report trends synthetic bearing-temperature rises above ambient, iron in oil and viscosity changes. The thresholds are illustrative. Two labelled bench recordings and generated thermal/oil readings do not validate a fault classifier, remaining-life model, or a vessel safety decision.
 

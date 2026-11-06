@@ -1,0 +1,52 @@
+{
+  "normal": {
+    "samples": 24000,
+    "sample_rate_hz": 12000.0,
+    "fft_peak_hz": 4144.5,
+    "envelope_peak_hz": 119.5,
+    "expected_inner_race_hz": 162.09498666666664,
+    "bearing_band_fraction": 0.0036408135731319812,
+    "rms_g": 0.07009067977272056,
+    "screening_flag": false,
+    "method": "Hann FFT; 2-5 kHz Butterworth bandpass; Hilbert envelope; +/-5 Hz target energy / 20-1000 Hz envelope energy",
+    "source": "https://engineering.case.edu/sites/default/files/97.mat",
+    "source_sha256": "16bf48babcf1c7ac224bc1a81cd9eafdb27e42d5cf559761907e067e8eeadf3c",
+    "source_bytes": 3903344,
+    "label": "normal",
+    "rpm": 1796.0
+  },
+  "inner_race_fault": {
+    "samples": 24000,
+    "sample_rate_hz": 12000.0,
+    "fft_peak_hz": 3586.5,
+    "envelope_peak_hz": 161.5,
+    "expected_inner_race_hz": 162.18524,
+    "bearing_band_fraction": 0.3749562851758522,
+    "rms_g": 0.28902453597847527,
+    "screening_flag": true,
+    "method": "Hann FFT; 2-5 kHz Butterworth bandpass; Hilbert envelope; +/-5 Hz target energy / 20-1000 Hz envelope energy",
+    "source": "https://engineering.case.edu/sites/default/files/105.mat",
+    "source_sha256": "f80b0ea04fd06b372a0eaec7c056543ea37e4bb4727a5b173d2a5bacd2aa9cab",
+    "source_bytes": 2910768,
+    "label": "inner_race_fault",
+    "rpm": 1797.0
+  },
+  "comparison": {
+    "fault_fraction_greater": true,
+    "labelled_cases_match": true,
+    "limitation": "Two labelled bench recordings only, not a validated classifier or remaining-life prediction."
+  },
+  "synthetic_thermal_oil": {
+    "temperature_rise_c": 63.0,
+    "thermal_alert": true,
+    "iron_ppm_per_day": 0.8688524590163934,
+    "oil_alert": true,
+    "viscosity_fraction_change": 0.25,
+    "limitation": "Illustrative thresholds on synthetic thermal/oil readings; no remaining-life or vessel-safety prediction"
+  },
+  "evidence": {
+    "run": "https://github.com/jackaI1/erp-batch-manufacturing/actions/runs/42311515896",
+    "commit": "8418fde",
+    "note": "Real API and analysis passed; screenshot capture failed in this run and is repaired separately."
+  }
+}

@@ -164,3 +164,11 @@ class EmptySiteSetupTests(unittest.TestCase):
         api = EmptySite()
         setup_orders(api)
         self.assertIn(('Customer','SYN-CUSTOMER'),api.rows)
+
+class DraftWarehouseRegressionTests(unittest.TestCase):
+    def test_stock_order_lines_include_the_demo_finished_goods_warehouse(self):
+        from erp_demo.workflow import FINISHED
+        erp = Catalog()
+        pages = {1:'Customer: SYN-CUSTOMER\nPO: SYN-PO-1\nCurrency: CAD\nFG-LOTION | 2 | 12.50'}
+        draft_order(order(),pages,erp)
+        self.assertEqual(erp.writes[0]['items'][0]['warehouse'],FINISHED)

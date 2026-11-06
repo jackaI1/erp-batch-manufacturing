@@ -62,6 +62,7 @@ jobs:
           python -m erp_demo recall RM-OIL-A > artifacts/recall.json
           python -m erp_demo balance RM-OIL-A > artifacts/balance.json
       - name: Upload synthetic ledger evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: compounding-evidence

@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr
 from pypdf import PdfReader
 
 from .intake_review import review_order
-from .workflow import COMPANY
+from .workflow import COMPANY, FINISHED
 
 
 class StrictModel(BaseModel):
@@ -138,7 +138,7 @@ def draft_order(data, pages, erp):
         'transaction_date': date.today().isoformat(),
         'delivery_date': (date.today() + timedelta(days=14)).isoformat(),
         'items': [{'item_code': line.item.value, 'qty': float(line.quantity.value),
-                   'rate': float(line.unit_price.value)} for line in order.lines]})
+                   'rate': float(line.unit_price.value), 'warehouse': FINISHED} for line in order.lines]})
     return {'status': 'draft', 'issues': [], 'document': draft}
 
 

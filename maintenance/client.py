@@ -37,13 +37,15 @@ class Client:
     def from_env(cls):
         return cls(os.getenv('MAINT_URL', 'http://127.0.0.1:8090/cmdbuild'), os.getenv('MAINT_USER', 'admin'), os.getenv('MAINT_PASSWORD', 'admin'))
 
-    def request(self, method, path, data=None, params=None):
+    def request(self, method, path, data=None, params=None, *, admin=False):
         url = self.base + '/' + path
         if params:
             url += '?' + urlencode(params)
         headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
         if self.session:
             headers['CMDBuild-Authorization'] = self.session
+        if admin:
+            headers['CMDBuild-View'] = 'admin'
         request = Request(url, method=method, headers=headers, data=None if data is None else json.dumps(data, allow_nan=False).encode())
         try:
             with self.opener.open(request, timeout=90) as response:

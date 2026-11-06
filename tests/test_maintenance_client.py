@@ -22,10 +22,14 @@ class ClientTests(unittest.TestCase):
                 self.wfile.write(body)
             def do_POST(self):
                 payload = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
-                calls.append(('login', payload['scope']))
-                if 'returnId=true' not in self.path:
-                    raise AssertionError('Session must request its real ID')
-                self.respond({'_id': 'test-session'})
+                if '/attributes' in self.path:
+                    calls.append(('admin_view', self.headers.get('CMDBuild-View')))
+                    self.respond({'name': payload['name']})
+                else:
+                    calls.append(('login', payload['scope']))
+                    if 'returnId=true' not in self.path:
+                        raise AssertionError('Session must request its real ID')
+                    self.respond({'_id': 'test-session'})
             def do_GET(self):
                 self.assert_auth()
                 from urllib.parse import parse_qs, urlsplit
@@ -45,10 +49,12 @@ class ClientTests(unittest.TestCase):
                 rows = api.cards('FleetAsset')
                 self.assertEqual(len(rows), 101)
                 self.assertEqual(rows[-1]['Code'], '100')
+                api.request('POST', 'classes/FleetAsset/attributes', {'name': 'Kind'}, admin=True)
             self.assertEqual(calls[0], ('login', 'service'))
             self.assertEqual(calls[1:3], [('header', 'test-session')] * 2)
             self.assertTrue(calls[-1][1].endswith('/sessions/test-session'))
             self.assertEqual(calls[-2], ('logout_header', 'test-session'))
+            self.assertIn(('admin_view', 'admin'), calls)
         finally:
             server.shutdown()
             server.server_close()

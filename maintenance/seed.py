@@ -12,17 +12,17 @@ SCHEMA = {
 
 
 def setup(api):
-    classes = {row['name'] for row in api.request('GET', 'classes', params={'scope': 'service', 'limit': 1000})['data']}
+    classes = {row['name'] for row in api.request('GET', 'classes', params={'scope': 'service', 'limit': 1000}, admin=True)['data']}
     for name, attributes in SCHEMA.items():
         if name not in classes:
-            api.request('POST', 'classes', dict(name=name, description=name.replace('Fleet', 'Fleet '), type='standard', parent='Class', active=True, prototype=False), params={'scope': 'service'})
-        existing = {a['name'] for a in api.request('GET', 'classes/' + name + '/attributes')['data']}
+            api.request('POST', 'classes', dict(name=name, description=name.replace('Fleet', 'Fleet '), type='standard', parent='Class', active=True, prototype=False), params={'scope': 'service'}, admin=True)
+        existing = {a['name'] for a in api.request('GET', 'classes/' + name + '/attributes', admin=True)['data']}
         for key, kind in attributes.items():
             if key not in existing:
                 data = dict(name=key, description=key, type=kind, mode='write', active=True)
                 if kind == 'string':
                     data['maxLength'] = 250
-                api.request('POST', 'classes/' + name + '/attributes', data)
+                api.request('POST', 'classes/' + name + '/attributes', data, admin=True)
 
 
 def fixture():

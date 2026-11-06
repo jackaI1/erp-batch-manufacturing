@@ -99,6 +99,7 @@ proposal or deliberately fix the catalog in ERPNext, then rerun review. A price
 change is never approved by changing a model confidence score. Draft orders
 still need a person to check delivery dates, tax, shipping, terms and approval.
 The example delivery date is a documented placeholder of today plus 14 days.
+Stock lines use the demo Finished Goods warehouse; the draft does not reserve or move stock.
 
 ## Boundaries and recovery
 

@@ -26,13 +26,13 @@ Open [the local login](http://127.0.0.1:8090/cmdbuild/ui/) in a browser on the L
 
 ![Real openMAINT login screen](maintenance/01-login.png)
 
-Open [Fleet Asset](http://127.0.0.1:8090/cmdbuild/ui/#classes/FleetAsset/cards). The eight records describe a tug and a barge. Each record has a vessel code and a parent code. For example, **TUG-01 → TUG-PROP → TUG-ENGINE** means vessel, propulsion system, then engine. The importer checks that each parent exists, stays within the same vessel and does not make a loop.
+After the management screen finishes loading, expand **All items**, then **Classes**, and choose **Fleet Asset**. Open a record to see its vessel and parent fields. The eight records describe a tug and a barge. Each record has a vessel code and a parent code. For example, **TUG-01 → TUG-PROP → TUG-ENGINE** means vessel, propulsion system, then engine. The importer checks that each parent exists, stays within the same vessel and does not make a loop.
 
 ![Eight synthetic fleet assets in the real application](maintenance/02-fleet-assets.png)
 
-Open [Fleet Plan](http://127.0.0.1:8090/cmdbuild/ui/#classes/FleetPlan/cards). The six plans include engine oil changes every 250 running hours, bearing checks every 500 hours, a dated winch service, and illustrative class and regulatory surveys. Actual survey requirements depend on the vessel and authority; these dates are examples, not compliance advice.
+Under **All items → Classes**, choose **Fleet Plan**. The six plans include engine oil changes every 250 running hours, bearing checks every 500 hours, a dated winch service, and illustrative class and regulatory surveys. Actual survey requirements depend on the vessel and authority; these dates are examples, not compliance advice.
 
-Open [Fleet Work Order](http://127.0.0.1:8090/cmdbuild/ui/#classes/FleetWorkOrder/cards). At the frozen demonstration date of **November 1, 2026**, the engine oil change, bearing check and tug survey are due. The script creates three open work records through the real REST API, the interface used to read and write application data. Running it again reuses the same work records.
+Under **All items → Classes**, choose **Fleet Work Order**. At the frozen demonstration date of **November 1, 2026**, the engine oil change, bearing check and tug survey are due. The script creates three open work records through the real REST API, the interface used to read and write application data. Running it again reuses the same work records.
 
 ![Due work orders stored by openMAINT](maintenance/03-work-orders.png)
 
@@ -55,7 +55,7 @@ Read `artifacts/maintenance/fleet-report.json`, or the [committed real API repor
 
 A failure code is a short label such as `LUBE` or `BEARING` explaining what problem the work addresses. The spare barge component deliberately has no plan so the audit has a visible finding. Systems without their own plan also appear, even if components below them have plans.
 
-`examples/maintenance/legacy-assets.csv` uses old-style column names. `maintenance/migration.py` maps them explicitly and checks all rows before writing. Duplicate asset numbers, bad meters and broken parent links stop the import. Existing cards are never overwritten. A different serial number on a repeat import appears as a reconciliation mismatch for a person to resolve. Each API request commits separately, so inspect the report before retrying a partial failure.
+`examples/maintenance/legacy-assets.csv` uses old-style column names. `maintenance/migration.py` maps them explicitly and checks all rows before writing. Duplicate asset numbers, bad meters and broken parent links stop the import. The saved CI report is a repeat import after the integration test, so `created: 0` means all eight assets were already present and reconciled correctly. Existing cards are never overwritten. A different serial number on a repeat import appears as a reconciliation mismatch for a person to resolve. Each API request commits separately, so inspect the report before retrying a partial failure.
 
 The cost forecast is an undiscounted planning example. `DailyHours` is an explicit synthetic usage assumption. Replacement costs are additive allocations: vessel rows cover hulls, system rows cover other system parts, and component rows cover those components. They are not overlapping quotes for whole assemblies. The forecast combines these allocations with estimated scheduled service costs; it is not an accounting valuation or a prediction of unscheduled failures.
 

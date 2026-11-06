@@ -45,8 +45,8 @@
     "limitation": "Illustrative thresholds on synthetic thermal/oil readings; no remaining-life or vessel-safety prediction"
   },
   "evidence": {
-    "run": "https://github.com/jackaI1/erp-batch-manufacturing/actions/runs/42311515896",
-    "commit": "8418fde",
-    "note": "Real API and analysis passed; screenshot capture failed in this run and is repaired separately."
+    "run": "https://github.com/jackaI1/erp-batch-manufacturing/actions/runs/42312814976",
+    "commit": "3e6eed67b0f0869716f73248b933b8ae33c79a28",
+    "note": "Real openMAINT integration, public bearing analysis and actual UI screenshots all passed; containers and owned pages were closed."
   }
 }

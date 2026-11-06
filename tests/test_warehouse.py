@@ -69,6 +69,23 @@ class WarehouseMathTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 warehouse.pick_seconds(start, end)
 
+    def test_putaway_identifies_native_stock_entry_detail_rows(self):
+        class NativeContract:
+            def call(inner, method, args):
+                self.assertEqual(method, warehouse.PUTAWAY_METHOD)
+                self.assertEqual(args["items"][0].get("doctype"), "Stock Entry Detail")
+                return [dict(args["items"][0], qty=80, transfer_qty=80, t_warehouse=warehouse.BIN_A),
+                        dict(args["items"][0], qty=40, transfer_qty=40, t_warehouse=warehouse.BIN_B)]
+            def create(inner, doctype, **fields):
+                self.assertEqual(doctype, "Stock Entry")
+                self.assertEqual([row["t_warehouse"] for row in fields["items"]],
+                                 [warehouse.BIN_A, warehouse.BIN_B])
+                return dict(fields, name="SYNTHETIC-PUTAWAY", docstatus=0)
+            def submit(inner, doc):
+                return dict(doc, docstatus=1)
+        result = warehouse.putaway(NativeContract())
+        self.assertEqual(result["docstatus"], 1)
+
     def test_overflow_is_rejected_before_creating_transfer(self):
         class Full:
             def call(self, method, args):

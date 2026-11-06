@@ -60,3 +60,10 @@ class ModelHTTPTests(unittest.TestCase):
         adapter = ReplayAdapter(ROOT/'examples/intake/recordings/ollama-invalid-flat.json')
         with self.assertRaises(ValueError):
             adapter.extract(load_document(ROOT/'examples/intake/clean.eml'))
+
+    def test_successful_real_recording_replays_with_grounded_evidence(self):
+        from erp_demo.intake import review
+        from erp_demo.intake_benchmark import ReferenceCatalog
+        pages = load_document(ROOT/'examples/intake/clean.eml')
+        extracted = ReplayAdapter(ROOT/'examples/intake/recordings/ollama-live-clean.json').extract(pages)
+        self.assertEqual(review(extracted.model_dump(),pages,ReferenceCatalog())['status'],'ready')

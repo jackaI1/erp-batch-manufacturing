@@ -20,6 +20,16 @@ ROOT = Path(__file__).resolve().parents[1]
 class IntakeIntegration(unittest.TestCase):
     def test_mcp_creates_real_draft_and_holds_bad_price(self):
         api = Client.from_env()
+        from erp_demo.api import ERPError
+        original_request = api.request
+        def diagnostic(method, path, *args, **kwargs):
+            try:
+                return original_request(method, path, *args, **kwargs)
+            except ERPError as error:
+                if error.status != 404:
+                    print(f'Synthetic intake diagnostic: {method} {path}: {error.server_messages}', flush=True)
+                raise
+        api.request = diagnostic
         seed(api)
         setup_orders(api)
         record = json.loads((ROOT/'examples/intake/recordings/clean.json').read_text())

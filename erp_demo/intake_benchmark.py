@@ -52,13 +52,13 @@ def run(backend='replay', model=None):
         correct = sum(value == actual.get(key) for key,value in reference.items())
         # Extra fields/lines also count against accuracy.
         total = len(set(reference) | set(actual))
-        rows.append(dict(id=case['id'], status=decision['status'], expected_status=case['expected_status'],
+        rows.append(dict(id=case['id'], status=decision['status'], expected_status=case['expected_status'] if backend=='replay' else case['expected_document_status'],
                          correct_fields=correct, total_fields=total, seconds=time.perf_counter()-start,
                          issues=decision['issues'], error=error))
     accepted = [r for r in rows if r['status']=='ready']
     return dict(mode='synthetic protocol replay' if backend=='replay' else 'live '+backend,
                 provenance=('Hand-authored tool-response fixtures. This tests the pipeline, not model quality.'
-                            if backend=='replay' else 'Live model calls; raw responses may vary.'),
+                            if backend=='replay' else 'Live model calls; raw responses may vary. Decision labels describe source documents; replay labels additionally inject bad proposals.'),
                 orders=len(rows),held_orders=sum(r['status']=='review' for r in rows),
                 abstention_rate=sum(r['status']=='review' for r in rows)/len(rows),
                 raw_field_accuracy=sum(r['correct_fields'] for r in rows)/sum(r['total_fields'] for r in rows),

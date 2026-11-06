@@ -50,4 +50,6 @@ jobs:
         run: docker compose -f compose.maintenance.yaml logs --tail 100 app
       - name: Remove this job's containers and data
         if: always()
-        run: docker compose -f compose.maintenance.yaml down --volumes --remove-orphans
+        run: |
+          docker compose -f compose.maintenance.yaml down --volumes --remove-orphans
+          test -z "$(docker ps -aq --filter label=com.docker.compose.project=fleet-maintenance)"

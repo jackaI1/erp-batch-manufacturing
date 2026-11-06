@@ -1,0 +1,109 @@
+{
+  "mode": "live ollama",
+  "provenance": "Actual live Ollama results from the linked run; source-document decision labels corrected separately from fault-injected replay labels. Values, decisions and measured timings unchanged.",
+  "orders": 8,
+  "held_orders": 3,
+  "abstention_rate": 0.375,
+  "raw_field_accuracy": 1.0,
+  "accepted_field_accuracy": 1.0,
+  "status_accuracy": 0.875,
+  "mean_seconds": 20.39498410049997,
+  "timing_note": "Measured extraction plus review wall time; replay excludes model latency. No human timing or speedup claim.",
+  "rows": [
+    {
+      "id": "clean",
+      "status": "ready",
+      "expected_status": "ready",
+      "correct_fields": 6,
+      "total_fields": 6,
+      "seconds": 15.896844550999958,
+      "issues": [],
+      "error": null
+    },
+    {
+      "id": "unknown",
+      "status": "review",
+      "expected_status": "review",
+      "correct_fields": 6,
+      "total_fields": 6,
+      "seconds": 17.259613461999948,
+      "issues": [
+        "FG-UNKNOWN: unknown item or ambiguous/missing ERP price",
+        "lines[0].item: unknown item"
+      ],
+      "error": null
+    },
+    {
+      "id": "price",
+      "status": "review",
+      "expected_status": "review",
+      "correct_fields": 6,
+      "total_fields": 6,
+      "seconds": 17.137815974999967,
+      "issues": [
+        "lines[0].unit_price: price conflict"
+      ],
+      "error": null
+    },
+    {
+      "id": "weak",
+      "status": "ready",
+      "expected_status": "ready",
+      "correct_fields": 6,
+      "total_fields": 6,
+      "seconds": 17.270445468999924,
+      "issues": [],
+      "error": null
+    },
+    {
+      "id": "invented",
+      "status": "ready",
+      "expected_status": "ready",
+      "correct_fields": 6,
+      "total_fields": 6,
+      "seconds": 17.173556894000058,
+      "issues": [],
+      "error": null
+    },
+    {
+      "id": "omitted",
+      "status": "ready",
+      "expected_status": "ready",
+      "correct_fields": 9,
+      "total_fields": 9,
+      "seconds": 24.894432601999938,
+      "issues": [],
+      "error": null
+    },
+    {
+      "id": "two-page",
+      "status": "ready",
+      "expected_status": "ready",
+      "correct_fields": 9,
+      "total_fields": 9,
+      "seconds": 26.12644203399998,
+      "issues": [],
+      "error": null
+    },
+    {
+      "id": "attachment",
+      "status": "review",
+      "expected_status": "ready",
+      "correct_fields": 9,
+      "total_fields": 9,
+      "seconds": 27.400721816999976,
+      "issues": [
+        "customer: missing or unverifiable source",
+        "purchase_order: missing or unverifiable source",
+        "lines[0].item: missing or unverifiable source",
+        "lines[0].quantity: missing or unverifiable source",
+        "lines[0].unit_price: missing or unverifiable source",
+        "lines[1].item: missing or unverifiable source",
+        "lines[1].unit_price: missing or unverifiable source",
+        "currency: unverifiable source or low confidence"
+      ],
+      "error": null
+    }
+  ],
+  "source_run": "https://github.com/jackaI1/erp-batch-manufacturing/actions/runs/42307988397"
+}

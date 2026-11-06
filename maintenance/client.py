@@ -57,8 +57,11 @@ class Client:
 
     def close(self):
         if self.session:
-            token, self.session = self.session, None
-            self.request('DELETE', 'sessions/' + quote(str(token), safe=''))
+            token = self.session
+            try:
+                self.request('DELETE', 'sessions/' + quote(str(token), safe=''))
+            finally:
+                self.session = None
 
     def __enter__(self):
         return self

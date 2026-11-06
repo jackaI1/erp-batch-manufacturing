@@ -34,6 +34,7 @@ class ClientTests(unittest.TestCase):
             def assert_auth(self):
                 calls.append(('header', self.headers.get('CMDBuild-Authorization')))
             def do_DELETE(self):
+                calls.append(('logout_header', self.headers.get('CMDBuild-Authorization')))
                 calls.append(('logout', self.path))
                 self.respond(None)
         server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
@@ -47,6 +48,7 @@ class ClientTests(unittest.TestCase):
             self.assertEqual(calls[0], ('login', 'service'))
             self.assertEqual(calls[1:3], [('header', 'test-session')] * 2)
             self.assertTrue(calls[-1][1].endswith('/sessions/test-session'))
+            self.assertEqual(calls[-2], ('logout_header', 'test-session'))
         finally:
             server.shutdown()
             server.server_close()

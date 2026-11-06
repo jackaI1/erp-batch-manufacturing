@@ -179,6 +179,9 @@ class ERPNextOrders:
 
 
 def setup_orders(api):
+    # This demo bypasses the setup wizard, which normally creates sales roots.
+    api.ensure('Customer Group', 'All Customer Groups', customer_group_name='All Customer Groups', is_group=1)
+    api.ensure('Territory', 'All Territories', territory_name='All Territories', is_group=1)
     api.ensure('Customer Group', 'Synthetic customers', customer_group_name='Synthetic customers',
                parent_customer_group='All Customer Groups')
     api.ensure('Customer', 'SYN-CUSTOMER', customer_name='SYN-CUSTOMER', customer_type='Company',

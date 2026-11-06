@@ -84,7 +84,7 @@ def putaway(api, quantity=120):
     quantity = positive_number(quantity)
     items = api.call(PUTAWAY_METHOD, {"doctype": "Stock Entry", "company": COMPANY,
                     "purpose": "Material Transfer", "sync": "true",
-                    "items": [dict(_line(quantity), s_warehouse=STAGING)]})
+                    "items": [dict(_line(quantity), doctype="Stock Entry Detail", s_warehouse=STAGING)]})
     if not items or not math.isclose(sum(float(row["qty"]) for row in items), quantity) or any(
             row.get("t_warehouse") not in CAPACITIES for row in items):
         raise ValueError("Putaway rules cannot allocate the complete quantity; no stock was moved")

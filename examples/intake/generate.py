@@ -88,7 +88,7 @@ def main():
         recording = dict(provenance='Hand-authored synthetic protocol fixture; not a live model capture', backend=backend,
                          source_sha256=source_hash(load_document(ROOT/file)),response=response)
         (ROOT/'recordings'/(name+'.json')).write_text(json.dumps(recording,indent=2)+'\n')
-        keyed.append(dict(id=name,file=file,reference=copy.deepcopy(label),expected_status=status))
+        keyed.append(dict(id=name,file=file,reference=copy.deepcopy(label),expected_status=status, expected_document_status='review' if name in ('unknown','price') else 'ready'))
     (ROOT/'labels.json').write_text(json.dumps(keyed,indent=2)+'\n')
 
 

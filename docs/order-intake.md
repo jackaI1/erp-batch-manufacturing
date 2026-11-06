@@ -22,7 +22,8 @@ an unknown product, a changed price, a weak field, an invented quantity and an
 omitted line. `examples/intake/labels.json` contains the hand-keyed answers.
 `recordings/` includes **hand-authored synthetic protocol fixtures** for the
 eight-order replay. `ollama-invalid-flat.json` is an actual failed tool response
-from Linux CI, retained as a schema-rejection regression. The replay is a repeatable check of the review
+from Linux CI, retained as a schema-rejection regression. `ollama-live-clean.json`
+is a successful real tool response from the same model after the schema fix. The replay is a repeatable check of the review
 pipeline. Its accuracy and timings do not measure a real model or a human's
 productivity. The report counts missing and extra fields, all raw fields, fields
 on accepted orders, held orders, decision accuracy and seconds per order.
@@ -129,3 +130,19 @@ incorrect or missing raw fields. A small local run averaged about 0.08 ms per
 order for replay plus review. That is Python pipeline time, not inference time.
 Use the live Actions report for model accuracy and seconds per order; no human
 keying times were measured and I make no speedup claim.
+
+## Live model result
+
+The [recorded CPU Ollama run](reports/intake-ollama.json) using Qwen3 1.7B
+matched all 57 hand-keyed field values across eight orders. It accepted five
+orders and held three (37.5%), averaging 20.39 seconds per order. Unknown items
+and a price conflict were correctly held. The attachment order was also held
+because its page references were wrong, despite correct field values. All
+accepted field values were correct. This is eight simple synthetic orders,
+not an estimate of production accuracy.
+
+The live report compares decisions with source-document labels: six are eligible
+for a clean proposal and two need catalog review. The replay has separate
+expected decisions because it deliberately injects a weak score, invented value
+and missing line into otherwise valid documents. Those injected problems are
+not facts about the source orders or expected mistakes from a real model.

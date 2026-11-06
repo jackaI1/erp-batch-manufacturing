@@ -148,3 +148,19 @@ class ModelSchemaRegressionTests(unittest.TestCase):
         schema = payload['tools'][0]['function']['parameters']
         self.assertEqual(schema['properties']['customer'].get('type'),'object')
         self.assertNotIn('$ref',json.dumps(schema))
+
+class EmptySiteSetupTests(unittest.TestCase):
+    def test_setup_supplies_customer_roots_on_wizardless_site(self):
+        from erp_demo.intake import setup_orders
+        class EmptySite:
+            def __init__(self): self.rows = {}
+            def ensure(self,kind,name,**fields):
+                for field,target in [('parent_customer_group','Customer Group'),('customer_group','Customer Group'),('territory','Territory')]:
+                    if fields.get(field) and (target,fields[field]) not in self.rows:
+                        raise ValueError('missing required linked master data')
+                self.rows[kind,name]=fields
+            def list(self,*args): return []
+            def create(self,kind,**fields): self.rows[kind,fields['item_code']]=fields
+        api = EmptySite()
+        setup_orders(api)
+        self.assertIn(('Customer','SYN-CUSTOMER'),api.rows)

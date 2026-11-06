@@ -41,7 +41,7 @@ def analyze_public():
         dict(date='2026-10-01', bearing_c=61, ambient_c=21, iron_ppm=28, viscosity_cst=108),
         dict(date='2026-11-01', bearing_c=83, ambient_c=20, iron_ppm=65, viscosity_cst=125)])
     if not result['comparison']['fault_fraction_greater'] or not result['comparison']['labelled_cases_match']:
-        raise AssertionError('Reference labels disagree with envelope screening; inspect the analysis')
+        raise AssertionError('Reference envelope screening disagrees: normal fraction=' + str(result['normal']['bearing_band_fraction']) + ', fault fraction=' + str(result['inner_race_fault']['bearing_band_fraction']))
     return result
 
 

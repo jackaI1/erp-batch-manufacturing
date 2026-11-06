@@ -11,6 +11,8 @@ class OpenMaintIntegration(unittest.TestCase):
         from maintenance.seed import setup, fixture, migrate, generate_work_orders
         from maintenance.fleet import audit, forecast
         with Client.from_env() as api:
+            native = {r['name'] for r in api.request('GET', 'classes', params={'scope': 'service', 'limit': 1000})['data']}
+            self.assertIn('Building', native, 'Must load the actual openMAINT demo schema')
             setup(api)
             source = fixture()
             result = migrate(api, source['assets'])

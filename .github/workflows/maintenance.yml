@@ -23,7 +23,10 @@ jobs:
           pip install -r maintenance/requirements.txt
           python -m playwright install --with-deps chromium
       - name: Generate disposable database password
-        run: echo "MAINT_DB_PASSWORD=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
+        run: |
+          fleet_password=$(openssl rand -hex 24)
+          echo "::add-mask::$fleet_password"
+          echo "MAINT_DB_PASSWORD=$fleet_password" >> "$GITHUB_ENV"
       - name: Start pinned real openMAINT
         run: docker compose -f compose.maintenance.yaml up -d
       - name: Wait for real API

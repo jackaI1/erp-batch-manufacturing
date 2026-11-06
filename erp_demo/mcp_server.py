@@ -4,19 +4,19 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-from .api import Client
-from .intake import ERPNextOrders, draft_order, load_document
+from .intake import draft_order, load_document
+from .order_backends import from_env
 
 mcp = FastMCP('Synthetic workshop order intake', log_level='ERROR')
 
 
 def erp():
-    return ERPNextOrders(Client.from_env())
+    return from_env()
 
 
 @mcp.tool()
 def search_items(query: str) -> list[dict]:
-    """Search enabled ERP sale items; missing/ambiguous CAD prices remain null."""
+    """Search enabled items in the selected ERP; missing or ambiguous prices stay null."""
     if not query.strip() or len(query) > 100:
         raise ValueError('Use a nonempty item query under 100 characters')
     return erp().search_items(query)

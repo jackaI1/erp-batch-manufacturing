@@ -20,7 +20,7 @@ For a quick review without any servers, use Python 3.11 or newer:
 
 ```sh
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+.venv/bin/pip install --index-url https://pypi.org/simple -r requirements.txt
 .venv/bin/python -m erp_demo.intake_benchmark
 ```
 
@@ -28,8 +28,9 @@ This compares eight synthetic orders with hand-keyed answers. The default run us
 hand-authored response fixtures to test the review rules. GitHub Actions also runs
 a real local model and saves its separate report. [Read an order and create a
 draft](docs/order-intake.md) explains both paths and how to resolve a held order.
-[The Business Central connector](docs/business-central.md) exercises Microsoft's
-order interface against a local contract server; I have not connected a live tenant.
+[The Business Central connector](docs/business-central.md) uses the same document
+review and MCP tools when I select it as the destination. Its full order path is
+tested against a local OData contract server; I have not connected a live tenant.
 
 The [warehouse walkthrough](docs/warehouse.md) receives a separate synthetic lot,
 allocates shelf space, picks it and posts a transfer. It exports a CSV that Power BI
@@ -156,7 +157,7 @@ The recall covers one-stage production from raw ingredients to finished goods. I
 ERP_INTEGRATION=1 .venv/bin/python -m pytest tests -q
 ```
 
-Install `requirements.txt` first. My local run passes 101 tests and 62 subtests, with six real-service tests skipped. The local suite includes source-grounding, a real MCP client session, OData HTTP contracts, warehouse calculations and maintenance rules. Opt-in ERPNext, openMAINT and Ollama checks run against real systems in separate Linux CI jobs. The original CAD regression checks also remain in CI. The original manufacturing test verifies 3 completed work orders, 20 kg of finished product, all 12 ingredient lots, accepted and rejected inspections, exact ingredient consumption, exclusion of an unrelated lot, setup reruns, an insufficient-stock rejection, and a -0.25 kg reconciliation.
+Install `requirements.txt` first. The local tests cover both ERP destinations, with six real-service checks reserved for CI. The local suite includes source-grounding, a real MCP client session, OData HTTP contracts, warehouse calculations and maintenance rules. Opt-in ERPNext, openMAINT and Ollama checks run against real systems in separate Linux CI jobs. The original CAD regression checks also remain in CI. The original manufacturing test verifies 3 completed work orders, 20 kg of finished product, all 12 ingredient lots, accepted and rejected inspections, exact ingredient consumption, exclusion of an unrelated lot, setup reruns, an insufficient-stock rejection, and a -0.25 kg reconciliation.
 
 The CAD integration test verifies two native equipment variants, six submitted BOMs across revisions A and B, exact child-revision links, repeat syncs, and blocked part and quantity mismatches. ERPNext's own expanded parts list contains 8 bolts for the two-head balm fixture in A and 12 in B. Another CI job installs FreeCAD, regenerates both models, reopens four files, checks solid geometry, and compares their exported lists. Synthetic ledger, order and warehouse reports are saved as the `compounding-evidence` artifact. Separate jobs save live Ollama results and fleet maintenance records with real UI screenshots. All containers and generated site data are removed even if a check fails.
 

@@ -4,13 +4,15 @@ import json
 from pathlib import Path
 
 from .api import Client
-from .intake import ERPNextOrders, draft_order, load_document, review, setup_orders
+from .intake import draft_order, load_document, review, setup_orders
+from .order_backends import from_env
 from .models import ModelAdapter, ReplayAdapter
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('document',type=Path,nargs='?')
+    parser.add_argument('--erp',choices=['erpnext','business-central'],default=None)
     parser.add_argument('--backend',choices=['anthropic','ollama'],default='ollama')
     parser.add_argument('--model')
     parser.add_argument('--replay',type=Path)
@@ -18,6 +20,9 @@ def main():
     parser.add_argument('--setup',action='store_true',help='Seed synthetic customer and selling prices on a seeded site')
     args = parser.parse_args()
     if args.setup:
+        import os
+        if (args.erp or os.getenv('INTAKE_ERP','erpnext')) != 'erpnext':
+            parser.error('--setup seeds only the disposable ERPNext demo; configure existing BC sandbox records separately')
         setup_orders(Client.from_env())
         print('Synthetic customer and prices ready')
         return
@@ -25,7 +30,7 @@ def main():
         parser.error('document is required unless --setup')
     pages = load_document(args.document)
     extraction = (ReplayAdapter(args.replay) if args.replay else ModelAdapter(args.backend,args.model)).extract(pages)
-    erp = ERPNextOrders(Client.from_env())
+    erp = from_env(args.erp)
     result = (draft_order if args.create_draft else review)(extraction.model_dump(), pages, erp)
     result['extraction'] = extraction.model_dump()
     print(json.dumps(result,indent=2))

@@ -87,7 +87,7 @@ def audit(assets, plans, work_orders, today):
         except ValueError as error:
             findings.append(dict(kind='missing_data', asset=code, detail=str(error)))
     for order in work_orders:
-        if order.get('Status') != 'closed' and not order.get('FailureCode'):
+        if order.get('WorkStatus') != 'closed' and not order.get('FailureCode'):
             findings.append(dict(kind='missing_failure_code', asset=order.get('AssetCode'), detail=order['Code']))
     return findings
 

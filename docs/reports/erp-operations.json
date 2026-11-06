@@ -1,0 +1,60 @@
+{
+  "source_run": "https://github.com/jackaI1/erp-batch-manufacturing/actions/runs/42309844046",
+  "dataset": "synthetic",
+  "sales_order": {
+    "name": "SAL-ORD-2026-00001",
+    "docstatus": 0,
+    "po_no": "SYN-PO-1",
+    "customer": "SYN-CUSTOMER",
+    "currency": "CAD",
+    "items": [
+      {
+        "item_code": "FG-LOTION",
+        "qty": 2.0,
+        "rate": 12.5,
+        "warehouse": "Finished Goods - DCP"
+      }
+    ]
+  },
+  "warehouse": {
+    "balances_kg": [
+      {
+        "item": "WH-DEMO-BASE",
+        "warehouse": "WH A-01 - DCP",
+        "kg": 70.0
+      },
+      {
+        "item": "WH-DEMO-BASE",
+        "warehouse": "WH B-01 - DCP",
+        "kg": 40.0
+      },
+      {
+        "item": "WH-DEMO-BASE",
+        "warehouse": "WH Dispatch - DCP",
+        "kg": 10.0
+      },
+      {
+        "item": "WH-DEMO-BASE",
+        "warehouse": "WH Receiving - DCP",
+        "kg": 0.0
+      }
+    ],
+    "kpis": {
+      "stock_accuracy_pct": 99.16666666666667,
+      "counted_positions": 4,
+      "mean_pick_seconds": 0.314141,
+      "bin_utilization_pct": 78.57142857142857
+    },
+    "dataset": "synthetic",
+    "putaway": "MAT-STE-2026-00008",
+    "pick": {
+      "pick_list": "STO-PICK-2026-00001",
+      "stock_entry": "MAT-STE-2026-00009",
+      "started_at": "2026-11-06T23:11:42.654548+00:00",
+      "completed_at": "2026-11-06T23:11:42.968689+00:00",
+      "seconds": 0.314141,
+      "timing_basis": "scripted API workflow"
+    },
+    "count_basis": "labelled synthetic stocktake: A-01 counted 69 kg against 70 kg recorded"
+  }
+}

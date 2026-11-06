@@ -7,7 +7,7 @@ from .fleet import due, reconcile, validate_asset
 SCHEMA = {
     'FleetAsset': {'Kind': 'string', 'Vessel': 'string', 'ParentCode': 'string', 'Serial': 'string', 'RunningHours': 'integer', 'DailyHours': 'integer', 'ReplacementCost': 'integer'},
     'FleetPlan': {'AssetCode': 'string', 'Task': 'string', 'Category': 'string', 'FailureCode': 'string', 'IntervalHours': 'integer', 'LastHours': 'integer', 'NextDate': 'string', 'EstimatedCost': 'integer'},
-    'FleetWorkOrder': {'AssetCode': 'string', 'PlanCode': 'string', 'Task': 'string', 'FailureCode': 'string', 'Status': 'string', 'DueDate': 'string', 'Triggers': 'string', 'EstimatedCost': 'integer'},
+    'FleetWorkOrder': {'AssetCode': 'string', 'PlanCode': 'string', 'Task': 'string', 'FailureCode': 'string', 'WorkStatus': 'string', 'DueDate': 'string', 'Triggers': 'string', 'EstimatedCost': 'integer'},
 }
 
 
@@ -22,7 +22,10 @@ def setup(api):
                 data = dict(name=key, description=key, type=kind, mode='write', active=True)
                 if kind == 'string':
                     data['maxLength'] = 250
-                api.request('POST', 'classes/' + name + '/attributes', data, admin=True)
+                try:
+                    api.request('POST', 'classes/' + name + '/attributes', data, admin=True)
+                except APIError as error:
+                    raise APIError(error.status, f'schema {name}.{key}: {error}') from None
 
 
 def fixture():
@@ -66,5 +69,5 @@ def generate_work_orders(api, today):
         code = plan['Code'] + '-' + cycle
         if not plan.get('FailureCode'):
             raise ValueError('Missing failure code; review before work-order creation')
-        result.append(api.ensure_card('FleetWorkOrder', dict(Code=code, Description='Synthetic work: ' + plan['Task'], AssetCode=plan['AssetCode'], PlanCode=plan['Code'], Task=plan['Task'], FailureCode=plan['FailureCode'], Status='open', DueDate=plan.get('NextDate') or today.isoformat(), Triggers=','.join(triggers), EstimatedCost=plan.get('EstimatedCost', 0))))
+        result.append(api.ensure_card('FleetWorkOrder', dict(Code=code, Description='Synthetic work: ' + plan['Task'], AssetCode=plan['AssetCode'], PlanCode=plan['Code'], Task=plan['Task'], FailureCode=plan['FailureCode'], WorkStatus='open', DueDate=plan.get('NextDate') or today.isoformat(), Triggers=','.join(triggers), EstimatedCost=plan.get('EstimatedCost', 0))))
     return result

@@ -63,3 +63,11 @@ ERP_INTEGRATION=1 python3 -m unittest discover -s tests -p 'test_warehouse*.py' 
 The local checks cover transfer ledger arithmetic, count variance, missing observations, capacity and invalid measurements, timezone-aware durations, CSV shape and refusal of partial allocation. The server test verifies native Putaway Rules, the exact 80/40 kg allocation, the lot-linked Pick List, its linked posted Stock Entry, all four ledger and Bin balances, refusal to rerun, overflow handling, and ERPNext's insufficient-stock rejection. It writes the two reports into the CI evidence artifact.
 
 The contract follows the pinned ERPNext source: [Putaway Rule](https://github.com/frappe/erpnext/blob/v15.124.5/erpnext/stock/doctype/putaway_rule/putaway_rule.py), [Pick List](https://github.com/frappe/erpnext/blob/v15.124.5/erpnext/stock/doctype/pick_list/pick_list.py), and [Bin](https://github.com/frappe/erpnext/blob/v15.124.5/erpnext/stock/doctype/bin/bin.json). Business actions live in `erp_demo/warehouse.py`; they reuse the authenticated REST client in `erp_demo/api.py`.
+
+## Saved run
+
+The [native ERPNext report](reports/erp-operations.json) records the actual
+synthetic receipt, putaway and pick IDs from a passing integration test. Its
+[CSV export](reports/warehouse-kpis.csv) reports 99.1667% stock accuracy and
+78.5714% bin utilization. The 0.314-second pick measurement is API workflow
+time on that runner, not a person's walking or picking time.

@@ -29,7 +29,7 @@ class OpenMaintIntegration(unittest.TestCase):
             self.assertGreaterEqual(len(first), 3)
             self.assertEqual({r['_id'] for r in first}, {r['_id'] for r in second})
             orders = api.cards('FleetWorkOrder')
-            self.assertTrue(all(r['Status'] == 'open' for r in orders))
+            self.assertTrue(all(r['WorkStatus'] == 'open' for r in orders))
             self.assertTrue(all(r['PlanCode'] and r['AssetCode'] for r in orders))
             self.assertIn('no_plan', {f['kind'] for f in audit(assets, plans, orders, date(2026, 11, 1))})
             self.assertEqual(len(forecast(assets, plans, date(2026, 11, 1))), 2)

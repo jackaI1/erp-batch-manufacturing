@@ -1,0 +1,5 @@
+dataset,metric,value,unit,basis
+synthetic,stock_accuracy_pct,99.16666666666667,percent,synthetic count versus posted ledger
+synthetic,counted_positions,4,positions,count coverage
+synthetic,mean_pick_seconds,0.314141,seconds,scripted API workflow
+synthetic,bin_utilization_pct,78.57142857142857,percent,posted ledger versus configured storage capacity

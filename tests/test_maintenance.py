@@ -9,6 +9,12 @@ class FleetTests(unittest.TestCase):
         self.assets = [dict(Code='TUG-01', Kind='vessel', Vessel='TUG-01', ParentCode='', Serial='S1', RunningHours=1200, ReplacementCost=100000), dict(Code='ENG-01', Kind='component', Vessel='TUG-01', ParentCode='TUG-01', Serial='E1', RunningHours=1200, ReplacementCost=10000)]
         self.plans = [dict(Code='P1', AssetCode='ENG-01', Task='Oil change', FailureCode='LUBE', IntervalHours=250, LastHours=900, NextDate='2026-12-01', EstimatedCost=100)]
 
+    def test_schema_does_not_redefine_cmdbuild_system_columns(self):
+        from maintenance.seed import SCHEMA
+        reserved = {'Id', 'IdClass', 'CurrentId', 'User', 'BeginDate', 'EndDate', 'Status'}
+        for fields in SCHEMA.values():
+            self.assertFalse(reserved.intersection(fields))
+
     def test_hours_and_date_are_independent_triggers(self):
         self.assertEqual(due(self.plans[0], self.assets[1], date(2026, 11, 1)), ['hours'])
         self.assertEqual(due(self.plans[0], dict(self.assets[1], RunningHours=1000), date(2026, 12, 1)), ['calendar'])

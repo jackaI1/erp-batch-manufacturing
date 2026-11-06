@@ -51,8 +51,17 @@ class Client:
             with self.opener.open(request, timeout=90) as response:
                 payload = json.load(response)
         except HTTPError as error:
-            # Never echo response bodies containing user records or credentials.
-            raise APIError(error.code) from None
+            # Only opt-in synthetic CI schema operations expose bounded messages.
+            # Sessions and business-record requests never echo response bodies.
+            detail = 'request rejected'
+            if admin and path.startswith('classes') and os.getenv('MAINT_INTEGRATION') == '1':
+                try:
+                    payload = json.loads(error.read(8192))
+                    messages = payload.get('messages', [])
+                    detail = '; '.join(str(m.get('message', ''))[:300] for m in messages[:2]) or detail
+                except (ValueError, AttributeError, TypeError):
+                    pass
+            raise APIError(error.code, detail) from None
         if not payload.get('success', True):
             raise APIError(400, 'API reported failure')
         return payload

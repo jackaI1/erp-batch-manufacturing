@@ -3,6 +3,7 @@ import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 import unittest
+from unittest.mock import patch
 from urllib.error import HTTPError
 from maintenance.client import Client, APIError
 
@@ -13,9 +14,9 @@ class ClientTests(unittest.TestCase):
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, *args):
                 pass
-            def respond(self, data):
-                body = json.dumps({'success': True, 'data': data}).encode()
-                self.send_response(200)
+            def respond(self, data, status=200):
+                body = json.dumps({'success': status < 400, 'data': data, **({'messages': data} if status >= 400 else {})}).encode()
+                self.send_response(status)
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Content-Length', str(len(body)))
                 self.end_headers()
@@ -24,7 +25,10 @@ class ClientTests(unittest.TestCase):
                 payload = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
                 if '/attributes' in self.path:
                     calls.append(('admin_view', self.headers.get('CMDBuild-View')))
-                    self.respond({'name': payload['name']})
+                    if payload['name'] == 'Status':
+                        self.respond([{'message': 'cannot create reserved attribute Status'}], 400)
+                    else:
+                        self.respond({'name': payload['name']})
                 else:
                     calls.append(('login', payload['scope']))
                     if 'returnId=true' not in self.path:
@@ -50,6 +54,9 @@ class ClientTests(unittest.TestCase):
                 self.assertEqual(len(rows), 101)
                 self.assertEqual(rows[-1]['Code'], '100')
                 api.request('POST', 'classes/FleetAsset/attributes', {'name': 'Kind'}, admin=True)
+                with patch.dict('os.environ', {'MAINT_INTEGRATION': '1'}):
+                    with self.assertRaisesRegex(APIError, 'reserved attribute'):
+                        api.request('POST', 'classes/FleetAsset/attributes', {'name': 'Status'}, admin=True)
             self.assertEqual(calls[0], ('login', 'service'))
             self.assertEqual(calls[1:3], [('header', 'test-session')] * 2)
             self.assertTrue(calls[-1][1].endswith('/sessions/test-session'))

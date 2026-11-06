@@ -1,0 +1,79 @@
+{
+  "provenance": "Hand-authored synthetic protocol fixture; not a live model capture",
+  "backend": "ollama",
+  "source_sha256": "9fea728e98a69e05d4e806bfbef085bf001387e7777520c03747d7a23f18f09b",
+  "response": {
+    "message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "name": "extract_order",
+            "arguments": {
+              "customer": {
+                "value": "SYN-CUSTOMER",
+                "page": 2,
+                "text": "SYN-CUSTOMER",
+                "confidence": 0.99
+              },
+              "purchase_order": {
+                "value": "SYN-PO-7",
+                "page": 2,
+                "text": "SYN-PO-7",
+                "confidence": 0.99
+              },
+              "currency": {
+                "value": "CAD",
+                "page": 2,
+                "text": "CAD",
+                "confidence": 0.99
+              },
+              "lines": [
+                {
+                  "item": {
+                    "value": "FG-LOTION",
+                    "page": 2,
+                    "text": "FG-LOTION",
+                    "confidence": 0.99
+                  },
+                  "quantity": {
+                    "value": "2",
+                    "page": 2,
+                    "text": "2",
+                    "confidence": 0.99
+                  },
+                  "unit_price": {
+                    "value": "12.50",
+                    "page": 2,
+                    "text": "12.50",
+                    "confidence": 0.99
+                  }
+                },
+                {
+                  "item": {
+                    "value": "FG-BALM",
+                    "page": 3,
+                    "text": "FG-BALM",
+                    "confidence": 0.99
+                  },
+                  "quantity": {
+                    "value": "1",
+                    "page": 3,
+                    "text": "1",
+                    "confidence": 0.99
+                  },
+                  "unit_price": {
+                    "value": "15.00",
+                    "page": 3,
+                    "text": "15.00",
+                    "confidence": 0.99
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

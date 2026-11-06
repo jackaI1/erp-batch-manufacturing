@@ -1,0 +1,11 @@
+{
+  "dataset": "synthetic",
+  "description": "Expected count after one fresh warehouse demonstration. Values are invented, not physical measurements.",
+  "unit": "kg",
+  "counts": [
+    {"item": "WH-DEMO-BASE", "warehouse": "WH Receiving - DCP", "counted": 0},
+    {"item": "WH-DEMO-BASE", "warehouse": "WH A-01 - DCP", "counted": 69},
+    {"item": "WH-DEMO-BASE", "warehouse": "WH B-01 - DCP", "counted": 40},
+    {"item": "WH-DEMO-BASE", "warehouse": "WH Dispatch - DCP", "counted": 10}
+  ]
+}

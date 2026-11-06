@@ -8,9 +8,44 @@ To try it, start the local workshop with the commands below. Then make a batch a
 
 For a quick look without starting a server, download this repository and run `python3 -m erp_demo cad-reuse examples/cad/filler-A.json`. It shows the parts shared by the lotion and balm filling fixtures, including 12 mounting bolts. [Sync the equipment parts](#keep-equipment-parts-and-drawings-together) after starting the workshop.
 
+## Read orders, move stock and plan maintenance
+
+I added order review because a copied quantity or price can change what the workshop
+makes. The intake reads fictional emails and PDF orders, checks each field against
+its source and the product catalog, and holds uncertain orders for a person. A model
+can propose fields through Anthropic or a local Ollama service. The MCP server, a
+standard way for assistants to call tools, can create an ERPNext sales order in draft.
+
+For a quick review without any servers, use Python 3.11 or newer:
+
+```sh
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/python -m erp_demo.intake_benchmark
+```
+
+This compares eight synthetic orders with hand-keyed answers. The default run uses
+hand-authored response fixtures to test the review rules. GitHub Actions also runs
+a real local model and saves its separate report. [Read an order and create a
+draft](docs/order-intake.md) explains both paths and how to resolve a held order.
+[The Business Central connector](docs/business-central.md) exercises Microsoft's
+order interface against a local contract server; I have not connected a live tenant.
+
+The [warehouse walkthrough](docs/warehouse.md) receives a separate synthetic lot,
+allocates shelf space, picks it and posts a transfer. It exports a CSV that Power BI
+can read, with stock-count accuracy, storage use and measured API workflow time.
+
+I also wanted to learn how a maintenance system keeps a service plan attached to
+each piece of equipment. The [fleet maintenance guide](docs/maintenance.md) uses a
+fictional tug and barge fleet in openMAINT, a free maintenance record system. It
+covers running-hour and calendar plans, survey dates, work-order cards, data audits,
+legacy-record migration and cost forecasts. Public bearing vibration recordings
+and clearly synthetic temperature and oil readings exercise the condition checks.
+These are learning examples, not a vessel's approved maintenance program.
+
 ## Start the workshop
 
-I use Docker with Compose, which packages ERPNext and its database together, and Python 3.10 or newer. Allow about 6 GB of Docker memory, 12 GB of disk space, and 5 to 15 minutes for the first start. The ERPNext image runs as `linux/amd64`; Apple Silicon uses Docker's emulation.
+I use Docker with Compose, which packages ERPNext and its database together, and Python 3.11 or newer. Allow about 6 GB of Docker memory, 12 GB of disk space, and 5 to 15 minutes for the first start. The ERPNext image runs as `linux/amd64`; Apple Silicon uses Docker's emulation.
 
 ```sh
 git clone https://github.com/jackaI1/erp-batch-manufacturing.git
@@ -106,17 +141,32 @@ Removing the volumes also removes the site. Keep `.env` if I want to reuse its p
 - `erp_demo/freecad_export.py` reads FreeCAD part containers and linked occurrences into a JSON parts list.
 - `erp_demo/cad.py` checks part identities, plans revisions, reports shared parts, and submits explicitly linked BOMs.
 - `cad/build_example.py` regenerates the included equipment models using real FreeCAD solid geometry.
+- `erp_demo/intake.py`, `models.py` and `mcp_server.py` connect quoted order fields, model tool calls and reviewed draft creation.
+- `erp_demo/warehouse.py` posts putaway, picking and transfers, then reads the stock ledger for its CSV.
+- `erp_demo/business_central.py` implements the separately tested Microsoft order interface.
+- `maintenance/` stores fleet records through openMAINT and checks plans, migration, costs and condition readings.
 
 The recall covers one-stage production from raw ingredients to finished goods. It does not yet follow intermediate blends, shipments, or customer deliveries. The generated quality readings are examples; real release controls would need measured results and permissions for operators and reviewers.
 
 ## Checks
 
 ```sh
-python3 -m unittest discover -s tests -v
+.venv/bin/python -m pytest tests -q
 # On a freshly started, empty demo site with .env loaded:
-ERP_INTEGRATION=1 python3 -m unittest discover -s tests -v
+ERP_INTEGRATION=1 .venv/bin/python -m pytest tests -q
 ```
 
-The first command runs 38 local tests and skips two server tests. GitHub Actions runs all 40 tests against a real ERPNext Docker stack. The original manufacturing test verifies 3 completed work orders, 20 kg of finished product, all 12 ingredient lots, accepted and rejected inspections, exact ingredient consumption, exclusion of an unrelated lot, setup reruns, an insufficient-stock rejection, and a -0.25 kg reconciliation.
+Install `requirements.txt` first. My local run passes 101 tests and 62 subtests, with six real-service tests skipped. The local suite includes source-grounding, a real MCP client session, OData HTTP contracts, warehouse calculations and maintenance rules. Opt-in ERPNext, openMAINT and Ollama checks run against real systems in separate Linux CI jobs. The original CAD regression checks also remain in CI. The original manufacturing test verifies 3 completed work orders, 20 kg of finished product, all 12 ingredient lots, accepted and rejected inspections, exact ingredient consumption, exclusion of an unrelated lot, setup reruns, an insufficient-stock rejection, and a -0.25 kg reconciliation.
 
-The CAD integration test verifies two native equipment variants, six submitted BOMs across revisions A and B, exact child-revision links, repeat syncs, and blocked part and quantity mismatches. ERPNext's own expanded parts list contains 8 bolts for the two-head balm fixture in A and 12 in B. Another CI job installs FreeCAD, regenerates both models, reopens four files, checks solid geometry, and compares their exported lists. Synthetic ledger and CAD reports are saved as the `compounding-evidence` artifact. All containers and generated site data are removed even if a check fails.
+The CAD integration test verifies two native equipment variants, six submitted BOMs across revisions A and B, exact child-revision links, repeat syncs, and blocked part and quantity mismatches. ERPNext's own expanded parts list contains 8 bolts for the two-head balm fixture in A and 12 in B. Another CI job installs FreeCAD, regenerates both models, reopens four files, checks solid geometry, and compares their exported lists. Synthetic ledger, order and warehouse reports are saved as the `compounding-evidence` artifact. Separate jobs save live Ollama results and fleet maintenance records with real UI screenshots. All containers and generated site data are removed even if a check fails.
+
+The [saved ERP run](docs/reports/erp-operations.json) includes a real draft sales
+order and the warehouse balances. The [fleet report](docs/reports/fleet-maintenance.json)
+contains eight assets, six plans and three due work-order cards read back from
+openMAINT. All 18 fleet tests passed against that running system. The
+[public vibration report](docs/reports/vibration.json) distinguishes the two
+labelled bearing recordings. My [live order comparison](docs/reports/intake-ollama.json)
+matched all 57 hand-keyed field values across eight synthetic orders, averaging
+20.39 seconds per order; three orders were held, including one with wrong page
+references. These small examples do not establish production accuracy or operator
+productivity.

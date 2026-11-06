@@ -1,0 +1,13 @@
+From: synthetic@example.invalid
+To: workshop@example.invalid
+Subject: Synthetic purchase order for testing
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+SYNTHETIC CUSTOMER PURCHASE ORDER
+Customer: SYN-CUSTOMER
+PO: SYN-PO-1
+Currency: CAD
+Item | Quantity | Unit price
+FG-LOTION | 2 | 12.50

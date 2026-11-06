@@ -1,0 +1,107 @@
+{
+  "mode": "synthetic protocol replay",
+  "provenance": "Hand-authored tool-response fixtures. This tests the pipeline, not model quality.",
+  "orders": 8,
+  "held_orders": 5,
+  "abstention_rate": 0.625,
+  "raw_field_accuracy": 0.9298245614035088,
+  "accepted_field_accuracy": 1.0,
+  "status_accuracy": 1.0,
+  "mean_seconds": 7.880755583755672e-05,
+  "timing_note": "Measured extraction plus review wall time; replay excludes model latency. No human timing or speedup claim.",
+  "rows": [
+    {
+      "id": "clean",
+      "status": "ready",
+      "expected_status": "ready",
+      "correct_fields": 6,
+      "total_fields": 6,
+      "seconds": 0.00020341714844107628,
+      "issues": [],
+      "error": null
+    },
+    {
+      "id": "unknown",
+      "status": "review",
+      "expected_status": "review",
+      "correct_fields": 6,
+      "total_fields": 6,
+      "seconds": 5.429214797914028e-05,
+      "issues": [
+        "FG-UNKNOWN: unknown item or ambiguous/missing ERP price",
+        "lines[0].item: unknown item"
+      ],
+      "error": null
+    },
+    {
+      "id": "price",
+      "status": "review",
+      "expected_status": "review",
+      "correct_fields": 6,
+      "total_fields": 6,
+      "seconds": 6.845803000032902e-05,
+      "issues": [
+        "lines[0].unit_price: price conflict"
+      ],
+      "error": null
+    },
+    {
+      "id": "weak",
+      "status": "review",
+      "expected_status": "review",
+      "correct_fields": 6,
+      "total_fields": 6,
+      "seconds": 4.3208012357354164e-05,
+      "issues": [
+        "lines[0].quantity: low or invalid confidence"
+      ],
+      "error": null
+    },
+    {
+      "id": "invented",
+      "status": "review",
+      "expected_status": "review",
+      "correct_fields": 5,
+      "total_fields": 6,
+      "seconds": 6.366684101521969e-05,
+      "issues": [
+        "lines[0].quantity: value not present in source text",
+        "lines[0].quantity: numeric token not grounded",
+        "lines[0]: source row mismatch"
+      ],
+      "error": null
+    },
+    {
+      "id": "omitted",
+      "status": "review",
+      "expected_status": "review",
+      "correct_fields": 6,
+      "total_fields": 9,
+      "seconds": 3.7084100767970085e-05,
+      "issues": [
+        "source line count cannot be reconciled; manual review required"
+      ],
+      "error": null
+    },
+    {
+      "id": "two-page",
+      "status": "ready",
+      "expected_status": "ready",
+      "correct_fields": 9,
+      "total_fields": 9,
+      "seconds": 9.754206985235214e-05,
+      "issues": [],
+      "error": null
+    },
+    {
+      "id": "attachment",
+      "status": "ready",
+      "expected_status": "ready",
+      "correct_fields": 9,
+      "total_fields": 9,
+      "seconds": 6.27920962870121e-05,
+      "issues": [],
+      "error": null
+    }
+  ]
+}

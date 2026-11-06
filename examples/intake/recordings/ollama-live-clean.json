@@ -1,0 +1,73 @@
+{
+  "backend": "ollama",
+  "provenance": "Real CPU model response in GitHub Actions",
+  "model": "qwen3:1.7b",
+  "source_sha256": "4f509bc0923ddae29394d732cb13103ac6b36bda3417601fd83db2fab2ba0292",
+  "response": {
+    "model": "qwen3:1.7b",
+    "created_at": "2026-11-06T22:58:10.066479387Z",
+    "message": {
+      "role": "assistant",
+      "content": "",
+      "tool_calls": [
+        {
+          "id": "call_ygxwbg0b",
+          "function": {
+            "index": 0,
+            "name": "extract_order",
+            "arguments": {
+              "currency": {
+                "confidence": 0.99,
+                "page": 1,
+                "text": "CAD",
+                "value": "CAD"
+              },
+              "customer": {
+                "confidence": 0.99,
+                "page": 1,
+                "text": "SYN-CUSTOMER",
+                "value": "SYN-CUSTOMER"
+              },
+              "lines": [
+                {
+                  "item": {
+                    "confidence": 0.99,
+                    "page": 1,
+                    "text": "FG-LOTION",
+                    "value": "FG-LOTION"
+                  },
+                  "quantity": {
+                    "confidence": 0.99,
+                    "page": 1,
+                    "text": "2",
+                    "value": "2"
+                  },
+                  "unit_price": {
+                    "confidence": 0.99,
+                    "page": 1,
+                    "text": "12.50",
+                    "value": "12.50"
+                  }
+                }
+              ],
+              "purchase_order": {
+                "confidence": 0.99,
+                "page": 1,
+                "text": "SYN-PO-1",
+                "value": "SYN-PO-1"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "done": true,
+    "done_reason": "stop",
+    "total_duration": 37771155530,
+    "load_duration": 1297009404,
+    "prompt_eval_count": 680,
+    "prompt_eval_duration": 20482064737,
+    "eval_count": 234,
+    "eval_duration": 15840345968
+  }
+}

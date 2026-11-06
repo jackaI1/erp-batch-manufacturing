@@ -1,0 +1,59 @@
+{
+  "provenance": "Hand-authored synthetic protocol fixture; not a live model capture",
+  "backend": "ollama",
+  "source_sha256": "344658a2f5821065fa02789163efd56f004195b271220e1b3ab74e2e9919a3a7",
+  "response": {
+    "message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "name": "extract_order",
+            "arguments": {
+              "customer": {
+                "value": "SYN-CUSTOMER",
+                "page": 1,
+                "text": "SYN-CUSTOMER",
+                "confidence": 0.99
+              },
+              "purchase_order": {
+                "value": "SYN-PO-2",
+                "page": 1,
+                "text": "SYN-PO-2",
+                "confidence": 0.99
+              },
+              "currency": {
+                "value": "CAD",
+                "page": 1,
+                "text": "CAD",
+                "confidence": 0.99
+              },
+              "lines": [
+                {
+                  "item": {
+                    "value": "FG-UNKNOWN",
+                    "page": 1,
+                    "text": "FG-UNKNOWN",
+                    "confidence": 0.99
+                  },
+                  "quantity": {
+                    "value": "2",
+                    "page": 1,
+                    "text": "2",
+                    "confidence": 0.99
+                  },
+                  "unit_price": {
+                    "value": "12.50",
+                    "page": 1,
+                    "text": "12.50",
+                    "confidence": 0.99
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "backend": "ollama",
+  "provenance": "Real CPU model response in GitHub Actions",
+  "model": "qwen3:1.7b",
+  "source_sha256": "4f509bc0923ddae29394d732cb13103ac6b36bda3417601fd83db2fab2ba0292",
+  "response": {
+    "model": "qwen3:1.7b",
+    "created_at": "2026-11-06T22:50:24.97637788Z",
+    "message": {
+      "role": "assistant",
+      "content": "",
+      "tool_calls": [
+        {
+          "id": "call_u27cai3k",
+          "function": {
+            "index": 0,
+            "name": "extract_order",
+            "arguments": {
+              "currency": "CAD",
+              "customer": "SYN-CUSTOMER",
+              "lines": [
+                {
+                  "item": "FG-LOTION",
+                  "quantity": "2",
+                  "unit_price": "12.50"
+                }
+              ],
+              "purchase_order": "SYN-PO-1"
+            }
+          }
+        }
+      ]
+    },
+    "done": true,
+    "done_reason": "stop",
+    "total_duration": 15425286028,
+    "load_duration": 914608240,
+    "prompt_eval_count": 484,
+    "prompt_eval_duration": 10689995725,
+    "eval_count": 73,
+    "eval_duration": 3753526774
+  }
+}

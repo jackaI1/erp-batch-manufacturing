@@ -13,7 +13,7 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     base = os.getenv('MAINT_URL', 'http://127.0.0.1:8090/cmdbuild')
     with sync_playwright() as runtime:
-        browser = runtime.chromium.launch(headless=True)
+        browser = runtime.chromium.launch(channel=os.getenv('MAINT_BROWSER_CHANNEL') or None, headless=True)
         context = browser.new_context(viewport={'width': 1280, 'height': 900})
         page = context.new_page()
         try:

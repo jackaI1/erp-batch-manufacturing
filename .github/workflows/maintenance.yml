@@ -13,6 +13,8 @@ jobs:
   openmaint:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    env:
+      MAINT_BROWSER_CHANNEL: chrome
     steps:
       - uses: actions/checkout@v4
       - name: Generate disposable database password
@@ -26,7 +28,6 @@ jobs:
       - name: Install small client and analysis dependencies
         run: |
           pip install -r maintenance/requirements.txt
-          python -m playwright install --with-deps chromium
       - name: Start pinned real openMAINT
         run: docker compose -f compose.maintenance.yaml up -d
       - name: Wait for real API
